@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "662694883365",
+    "project_id": "sherise-36d43",
+    "storage_bucket": "sherise-36d43.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:662694883365:android:b900d24310582bc84e4fcc",
+        "android_client_info": {
+          "package_name": "com.example.sherise"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "662694883365-g90paruo5refkupdqef24vk411acbk04.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sherise",
+            "certificate_hash": "978baa5217abe57a71138cfa4540b8e3bdaf04f8"
+          }
+        },
+        {
+          "client_id": "662694883365-1qcpne47gcjk9b6tf20rp0ugefl7ldau.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpboruQPgem5M2iOVTLi00A9Z_5cDzKoY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "662694883365-1qcpne47gcjk9b6tf20rp0ugefl7ldau.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "662694883365-ookrvuehbp4luqmkeffhum8t0irbqlub.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.sherise"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
