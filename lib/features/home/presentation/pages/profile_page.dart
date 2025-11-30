@@ -51,77 +51,70 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthCubit, AuthState>(
-      listener: (context, state) {
-        if (state is Unauthenticated) {
-          Navigator.pushReplacementNamed(context, '/login');
-        }
-      },
-      child: Scaffold(
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color.fromARGB(255, 255, 236, 242), Colors.white],
-            ),
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color.fromARGB(255, 255, 236, 242), Colors.white],
           ),
-          child: SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        'my_profile'.tr(),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                          fontSize: 24,
-                        ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      'my_profile'.tr(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                        fontSize: 24,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  child: BlocBuilder<AuthCubit, AuthState>(
-                    builder: (context, state) {
-                      if (state is AuthLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (state is Authenticated) {
-                        final user = state.user;
-                        final email = user.email.isNotEmpty
-                            ? user.email
-                            : "user@email.com";
-                        DateTime? creationDate = user.creationTime;
-                        String formattedDate = creationDate != null
-                            ? DateFormat('MMMM yyyy').format(creationDate)
-                            : "N/A";
+              ),
+              Expanded(
+                child: BlocBuilder<AuthCubit, AuthState>(
+                  builder: (context, state) {
+                    if (state is AuthLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (state is Authenticated) {
+                      final user = state.user;
+                      final email = user.email.isNotEmpty
+                          ? user.email
+                          : "user@email.com";
+                      DateTime? creationDate = user.creationTime;
+                      String formattedDate = creationDate != null
+                          ? DateFormat('MMMM yyyy').format(creationDate)
+                          : "N/A";
 
-                        return ScrollConfiguration(
-                          behavior: const _BouncyScrollBehavior(),
-                          child: _buildProfileContent(
-                            context,
-                            email,
-                            formattedDate,
-                          ),
-                        );
-                      } else if (state is Unauthenticated) {
-                        return Center(child: Text('logged_out'.tr()));
-                      } else {
-                        return Center(child: Text('no_profile_data'.tr()));
-                      }
-                    },
-                  ),
+                      return ScrollConfiguration(
+                        behavior: const _BouncyScrollBehavior(),
+                        child: _buildProfileContent(
+                          context,
+                          email,
+                          formattedDate,
+                        ),
+                      );
+                    } else if (state is Unauthenticated) {
+                      return Center(child: Text('logged_out'.tr()));
+                    } else {
+                      return Center(child: Text('no_profile_data'.tr()));
+                    }
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -362,15 +355,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
 class _BouncyScrollBehavior extends ScrollBehavior {
   const _BouncyScrollBehavior();
-
-  @override
-  Widget buildViewportChrome(
-    BuildContext context,
-    Widget child,
-    AxisDirection axisDirection,
-  ) {
-    return child;
-  }
 
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) {

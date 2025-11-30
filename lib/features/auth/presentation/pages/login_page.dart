@@ -52,6 +52,7 @@ class _LoginPageState extends State<LoginPage> {
               String message = await authCubit.forgotPassword(
                 emailController.text,
               );
+              if (!context.mounted) return;
               if (message == "Password reset email sent! check your inbox") {
                 Navigator.pop(context);
                 emailController.clear();
@@ -97,9 +98,7 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       // ✅ Replaced lock icon with PNG image
-                      Image.asset(
-                        'lib/assets/home page logo.png',
-                      ),
+                      Image.asset('lib/assets/home page logo.png'),
 
                       // App Name
                       Text(

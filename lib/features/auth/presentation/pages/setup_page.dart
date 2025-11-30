@@ -3,16 +3,17 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:sherise/features/auth/presentation/pages/pin_lock_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
 
-class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+class SetupPage extends StatefulWidget {
+  const SetupPage({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  State<SetupPage> createState() => _SetupPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage>
-    with TickerProviderStateMixin {
+class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
   bool _expanded = false;
   bool _callEnabled = true;
   late AnimationController _fadeController;
@@ -20,11 +21,12 @@ class _SettingsPageState extends State<SettingsPage>
   final TextEditingController _phoneController = TextEditingController();
   final FlutterNativeContactPicker _contactPicker =
       FlutterNativeContactPicker();
+  bool _appLockEnabled = false;
 
   @override
   void initState() {
     super.initState();
-    _loadEmergencyContact();
+    _loadDefaults();
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 250),
@@ -35,26 +37,25 @@ class _SettingsPageState extends State<SettingsPage>
     );
   }
 
+  Future<void> _loadDefaults() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _callEnabled = prefs.getBool('emergency_call_enabled') ?? true;
+        _appLockEnabled = prefs.getBool('app_lock_enabled') ?? false;
+        final contact = prefs.getString('emergency_contact');
+        if (contact != null) {
+          _phoneController.text = contact;
+        }
+      });
+    }
+  }
+
   @override
   void dispose() {
     _fadeController.dispose();
     _phoneController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadEmergencyContact() async {
-    final prefs = await SharedPreferences.getInstance();
-    final contact = prefs.getString('emergency_contact');
-    final callEnabled = prefs.getBool('emergency_call_enabled') ?? true;
-    if (mounted) {
-      setState(() {
-        if (contact != null) {
-          _phoneController.text = contact;
-        }
-        _callEnabled = callEnabled;
-        _appLockEnabled = prefs.getBool('app_lock_enabled') ?? false;
-      });
-    }
   }
 
   Future<void> _saveEmergencyContact(String value) async {
@@ -70,14 +71,13 @@ class _SettingsPageState extends State<SettingsPage>
     });
   }
 
-  bool _appLockEnabled = false;
-
   Future<void> _toggleAppLock(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     if (value) {
       // Check if PIN is set
       final pin = prefs.getString('app_pin');
       if (pin == null) {
+        if (!mounted) return; // Fix async gap
         // Navigate to PIN setup
         final result = await Navigator.push<bool>(
           context,
@@ -88,31 +88,47 @@ class _SettingsPageState extends State<SettingsPage>
 
         if (result == true) {
           await prefs.setBool('app_lock_enabled', true);
+          if (mounted) {
+            setState(() {
+              _appLockEnabled = true;
+            });
+          }
+        }
+      } else {
+        await prefs.setBool('app_lock_enabled', true);
+        if (mounted) {
           setState(() {
             _appLockEnabled = true;
           });
         }
-      } else {
-        await prefs.setBool('app_lock_enabled', true);
-        setState(() {
-          _appLockEnabled = true;
-        });
       }
     } else {
       await prefs.setBool('app_lock_enabled', false);
-      setState(() {
-        _appLockEnabled = false;
-      });
+      if (mounted) {
+        setState(() {
+          _appLockEnabled = false;
+        });
+      }
     }
   }
 
-  Future<void> _changePin() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const PinLockScreen(isSetup: true),
-      ),
-    );
+  Future<void> _pickContact() async {
+    try {
+      final contact = await _contactPicker.selectContact();
+      if (contact != null &&
+          contact.phoneNumbers != null &&
+          contact.phoneNumbers!.isNotEmpty) {
+        String number = contact.phoneNumbers!.first;
+        if (mounted) {
+          setState(() {
+            _phoneController.text = number;
+          });
+        }
+        _saveEmergencyContact(number);
+      }
+    } catch (e) {
+      debugPrint('Contact picker error: $e');
+    }
   }
 
   void _toggleDropdown() {
@@ -132,6 +148,15 @@ class _SettingsPageState extends State<SettingsPage>
         _expanded = false;
         _fadeController.reverse();
       });
+    }
+  }
+
+  Future<void> _finishSetup() async {
+    // Mark setup as complete in Cubit, which triggers main.dart to show MainPage
+    if (mounted) {
+      // We don't need to await this, it's a synchronous state emission
+      // But we should ensure the widget is still mounted
+      context.read<AuthCubit>().completeSetup();
     }
   }
 
@@ -157,34 +182,77 @@ class _SettingsPageState extends State<SettingsPage>
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
-                    vertical: 12,
+                    vertical: 20,
                   ),
-                  child: Row(
-                    children: [
-                      Text(
-                        'settings'.tr(),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                          fontSize: 24,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    'Welcome to SheRise',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 28,
+                    ),
                   ),
                 ),
                 Expanded(
                   child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(
-                      parent: AlwaysScrollableScrollPhysics(),
-                    ),
+                    physics: const BouncingScrollPhysics(),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // AI Support Info
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.pinkAccent.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                              border: Border.all(
+                                color: Colors.pinkAccent.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.auto_awesome,
+                                      color: Colors.pinkAccent,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'AI Support Available',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.pinkAccent,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'SheRise comes with an intelligent AI assistant to help you with safety tips, legal advice, and emotional support. You can access it anytime from the home screen.',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
                           _buildSectionTitle('language'.tr()),
                           const SizedBox(height: 10),
                           GestureDetector(
@@ -201,7 +269,7 @@ class _SettingsPageState extends State<SettingsPage>
                                 borderRadius: BorderRadius.circular(14),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.08),
+                                    color: Colors.black.withValues(alpha: 0.08),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),
@@ -240,7 +308,9 @@ class _SettingsPageState extends State<SettingsPage>
                                     borderRadius: BorderRadius.circular(12),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
                                         blurRadius: 8,
                                         offset: const Offset(0, 3),
                                       ),
@@ -289,13 +359,8 @@ class _SettingsPageState extends State<SettingsPage>
                               ),
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            child: Divider(
-                              color: Colors.grey.withOpacity(0.25),
-                              thickness: 0.7,
-                            ),
-                          ),
+
+                          const SizedBox(height: 24),
                           _buildSectionTitle('emergency_contact'.tr()),
                           const SizedBox(height: 10),
                           Container(
@@ -308,7 +373,7 @@ class _SettingsPageState extends State<SettingsPage>
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -338,13 +403,8 @@ class _SettingsPageState extends State<SettingsPage>
                               onChanged: _saveEmergencyContact,
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            child: Divider(
-                              color: Colors.grey.withOpacity(0.25),
-                              thickness: 0.7,
-                            ),
-                          ),
+
+                          const SizedBox(height: 24),
                           _buildSectionTitle('sos_settings'.tr()),
                           const SizedBox(height: 10),
                           Container(
@@ -357,7 +417,7 @@ class _SettingsPageState extends State<SettingsPage>
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -380,16 +440,12 @@ class _SettingsPageState extends State<SettingsPage>
                               ),
                               value: _callEnabled,
                               onChanged: _toggleCallEnabled,
+                              activeThumbImage: null,
                               activeColor: Colors.pinkAccent,
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            child: Divider(
-                              color: Colors.grey.withOpacity(0.25),
-                              thickness: 0.7,
-                            ),
-                          ),
+
+                          const SizedBox(height: 24),
                           _buildSectionTitle('Security'),
                           const SizedBox(height: 10),
                           Container(
@@ -402,53 +458,59 @@ class _SettingsPageState extends State<SettingsPage>
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
-                            child: Column(
-                              children: [
-                                SwitchListTile(
-                                  title: const Text(
-                                    'App Lock',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  subtitle: const Text(
-                                    'Require authentication when opening app',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  value: _appLockEnabled,
-                                  onChanged: _toggleAppLock,
-                                  activeColor: Colors.pinkAccent,
+                            child: SwitchListTile(
+                              title: const Text(
+                                'App Lock',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
                                 ),
-                                if (_appLockEnabled) ...[
-                                  const Divider(),
-                                  ListTile(
-                                    title: const Text(
-                                      'Change PIN',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    trailing: const Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 16,
-                                    ),
-                                    onTap: _changePin,
-                                  ),
-                                ],
-                              ],
+                              ),
+                              subtitle: const Text(
+                                'Require authentication when opening app',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              value: _appLockEnabled,
+                              onChanged: _toggleAppLock,
+                              activeColor: Colors.pinkAccent,
                             ),
                           ),
+
+                          const SizedBox(height: 40),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _finishSetup,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.pinkAccent,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                elevation: 5,
+                              ),
+                              child: const Text(
+                                'Finish Setup',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 40),
                         ],
                       ),
                     ),
@@ -463,7 +525,7 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _dividerLine() => Divider(
-    color: Colors.grey.withOpacity(0.2),
+    color: Colors.grey.withValues(alpha: 0.2),
     height: 0,
     thickness: 0.6,
     indent: 12,
@@ -486,7 +548,7 @@ class _SettingsPageState extends State<SettingsPage>
       borderRadius: BorderRadius.circular(12),
       onTap: () {
         context.setLocale(locale);
-        _closeDropdown(); // 👈 closes dropdown smoothly after selecting
+        _closeDropdown();
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -516,26 +578,6 @@ class _SettingsPageState extends State<SettingsPage>
         ),
       ),
     );
-  }
-
-  Future<void> _pickContact() async {
-    try {
-      final contact = await _contactPicker.selectContact();
-      if (contact != null &&
-          contact.phoneNumbers != null &&
-          contact.phoneNumbers!.isNotEmpty) {
-        String number = contact.phoneNumbers!.first;
-        // Optional: Clean the number (remove spaces, dashes, etc.)
-        // number = number.replaceAll(RegExp(r'[^\d+]'), '');
-        setState(() {
-          _phoneController.text = number;
-        });
-        _saveEmergencyContact(number);
-      }
-    } catch (e) {
-      // User cancelled or error
-      debugPrint('Contact picker error: $e');
-    }
   }
 
   String _getLanguageName(Locale locale) {

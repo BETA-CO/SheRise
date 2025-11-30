@@ -102,4 +102,18 @@ class AuthCubit extends Cubit<AuthState> {
       emit(Unauthenticated());
     }
   }
+
+  void completeSetup() {
+    if (_currentUser != null) {
+      // Create a new user instance with isNewUser set to false
+      final updatedUser = AppUser(
+        uid: _currentUser!.uid,
+        email: _currentUser!.email,
+        creationTime: _currentUser!.creationTime,
+        isNewUser: false,
+      );
+      _currentUser = updatedUser;
+      emit(Authenticated(updatedUser));
+    }
+  }
 }

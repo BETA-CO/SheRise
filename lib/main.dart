@@ -3,16 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:sherise/features/auth/presentation/components/loading.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
-import 'package:sherise/features/auth/presentation/cubits/auth_states.dart';
-import 'package:sherise/features/auth/presentation/pages/auth_page.dart';
 import 'package:sherise/colors/colors.dart';
-import 'package:sherise/features/home/presentation/pages/MainPage.dart';
 import 'package:sherise/firebase_options.dart';
 import 'package:sherise/features/auth/data/firebase_auth_repo.dart';
 import 'package:sherise/features/home/data/emergency_service.dart';
 import 'package:home_widget/home_widget.dart';
+import 'package:sherise/features/auth/presentation/pages/auth_flow_wrapper.dart';
+import 'package:sherise/features/onboarding/presentation/pages/landing_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Background Callback for Home Widget
 @pragma('vm:entry-point')
@@ -25,7 +24,7 @@ Future<void> backgroundCallback(Uri? data) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await HomeWidget.registerBackgroundCallback(backgroundCallback);
+  await HomeWidget.registerInteractivityCallback(backgroundCallback);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -48,18 +47,47 @@ void main() async {
       ],
       path: 'lib/assets/lang',
       fallbackLocale: const Locale('en'),
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
-  MyApp({super.key});
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   final firebaseAuthRepo = FirebaseAuthRepo();
+  bool? _onboardingComplete;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkOnboardingStatus();
+  }
+
+  Future<void> _checkOnboardingStatus() async {
+    // Add a small delay to ensure shared prefs is ready if needed,
+    // though usually await SharedPreferences.getInstance() is enough
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Show loading while checking onboarding status
+    if (_onboardingComplete == null) {
+      return const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(body: Center(child: CircularProgressIndicator())),
+      );
+    }
+
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>(
@@ -73,25 +101,9 @@ class MyApp extends StatelessWidget {
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
-        home: BlocConsumer<AuthCubit, AuthState>(
-          builder: (context, state) {
-            if (state is Unauthenticated) {
-              return const AuthPage();
-            }
-            if (state is Authenticated) {
-              return const MainPage();
-            } else {
-              return const LoadingScreen();
-            }
-          },
-          listener: (context, state) {
-            if (state is AuthError) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.message)));
-            }
-          },
-        ),
+        home: _onboardingComplete!
+            ? const AuthFlowWrapper()
+            : const LandingPage(),
       ),
     );
   }

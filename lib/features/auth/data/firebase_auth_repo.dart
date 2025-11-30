@@ -1,12 +1,14 @@
 //Firebase is our backend - you can swap out here...
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sherise/features/auth/domain/entities/app_user.dart';
 import 'package:sherise/features/auth/domain/repo/auth_repo.dart';
 
 class FirebaseAuthRepo implements AuthRepo {
   //firebase auth
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   @override
   Future<AppUser?> loginWithEmailPassword(String email, String password) async {
@@ -18,6 +20,7 @@ class FirebaseAuthRepo implements AuthRepo {
         uid: userCredential.user!.uid,
         email: email,
         creationTime: userCredential.user!.metadata.creationTime,
+        isNewUser: false, // Login implies existing user
       );
 
       return user;
@@ -40,6 +43,7 @@ class FirebaseAuthRepo implements AuthRepo {
         uid: userCredential.user!.uid,
         email: email,
         creationTime: userCredential.user!.metadata.creationTime,
+        isNewUser: true, // Registration implies new user
       );
 
       return user;
@@ -73,11 +77,13 @@ class FirebaseAuthRepo implements AuthRepo {
       uid: firebaseUser.uid,
       email: firebaseUser.email!,
       creationTime: firebaseUser.metadata.creationTime,
+      isNewUser: false, // Current user is already logged in
     );
   }
 
   @override
   Future<void> logout() async {
+    await _googleSignIn.signOut();
     await firebaseAuth.signOut();
   }
 
@@ -94,23 +100,27 @@ class FirebaseAuthRepo implements AuthRepo {
   @override
   Future<AppUser?> signInWithGoogle() async {
     try {
-      // Use Firebase Auth's provider-based Google sign-in
-      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      // Trigger the authentication flow
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
-      // Add scopes if needed
-      googleProvider.addScope('email');
-
-      // Try signInWithProvider first (works better on some devices)
-      UserCredential userCredential;
-      try {
-        userCredential = await firebaseAuth.signInWithProvider(googleProvider);
-      } catch (providerError) {
-        // Alternative: Use signInWithCredential with manual OAuth flow
-        // This is a fallback method
-        throw Exception(
-          'Provider sign-in not supported on this device. Please use email/password login or try a different device.',
-        );
+      if (googleUser == null) {
+        // The user canceled the sign-in
+        return null;
       }
+
+      // Obtain the auth details from the request
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // Create a new credential
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in to Firebase with the Google [UserCredential]
+      final UserCredential userCredential = await firebaseAuth
+          .signInWithCredential(credential);
 
       // Get the Firebase user
       final firebaseUser = userCredential.user;
@@ -119,14 +129,21 @@ class FirebaseAuthRepo implements AuthRepo {
         return null;
       }
 
+      // Check if it's a new user
+      // creationTime and lastSignInTime are usually close for new users
+      // But userCredential.additionalUserInfo?.isNewUser is more reliable
+      bool isNew = userCredential.additionalUserInfo?.isNewUser ?? false;
+
       AppUser appUser = AppUser(
         uid: firebaseUser.uid,
         email: firebaseUser.email ?? '',
         creationTime: firebaseUser.metadata.creationTime,
+        isNewUser: isNew,
       );
 
       return appUser;
     } catch (e) {
+      print("Google Sign In Error: $e");
       return null;
     }
   }
