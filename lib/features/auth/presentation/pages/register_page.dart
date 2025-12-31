@@ -83,9 +83,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset(
-                        'lib/assets/home page logo.png',
-                      ),
+                      Image.asset('lib/assets/home page logo.png'),
 
                       // title
                       Text(
