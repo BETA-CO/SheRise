@@ -8,6 +8,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telephony/telephony.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:sherise/features/wellness/wellness_page.dart';
+import 'package:sherise/features/map/nearby_places_page.dart';
+import 'package:sherise/features/legal/legal_rights_page.dart';
+import 'package:sherise/features/safety/safety_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -261,6 +265,118 @@ class _HomePageState extends State<HomePage>
                                           "Medical Advice",
                                           "104",
                                         ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                "More Features",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildFeatureButton(
+                                        Icons.spa_outlined,
+                                        "Antistress",
+                                        () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const WellnessPage(),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: _buildFeatureButton(
+                                        Icons.map_outlined,
+                                        "Nearby Places",
+                                        () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const NearbyPlacesPage(),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildFeatureButton(
+                                        Icons.gavel_outlined,
+                                        "Legal Rights",
+                                        () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const LegalRightsPage(),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: _buildFeatureButton(
+                                        Icons.share_location_outlined,
+                                        "Share Location",
+                                        () async {
+                                          final prefs =
+                                              await SharedPreferences.getInstance();
+                                          final contact = prefs.getString(
+                                            'emergency_contact',
+                                          );
+                                          if (contact != null &&
+                                              contact.isNotEmpty) {
+                                            SafetyService()
+                                                .startLocationSharingSession([
+                                                  contact,
+                                                ]);
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Live location sharing started (1 hour)',
+                                                ),
+                                              ),
+                                            );
+                                          } else {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Please set emergency contact first',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        },
                                       ),
                                     ),
                                   ],

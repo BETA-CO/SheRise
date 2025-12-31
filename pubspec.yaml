@@ -47,13 +47,13 @@ dependencies:
   path_provider: ^2.1.2
   telephony: ^0.2.0
   flutter_phone_direct_caller: ^2.1.1
-  geolocator: ^13.0.2
-  permission_handler: ^11.3.1
+  geolocator: ^14.0.2
+  permission_handler: ^12.0.1
   easy_localization: ^3.0.7
   flutter_native_contact_picker: ^0.0.6
-  home_widget: ^0.7.0
+  home_widget: ^0.8.1
   google_generative_ai: ^0.4.0
-  flutter_markdown: ^0.6.18
+  flutter_markdown: ^0.7.7+1
   scrollable_positioned_list: ^0.3.8
   local_auth: ^3.0.0
   local_auth_platform_interface: ^1.1.0
@@ -65,6 +65,13 @@ dependencies:
   stack_trace: ^1.12.1
   url_launcher: ^6.3.2
   web: ^1.1.1
+  battery_plus: ^7.0.0
+  connectivity_plus: ^7.0.0
+  cloud_firestore: ^6.1.0
+  sensors_plus: ^7.0.0
+  vibration: ^3.1.5
+  audioplayers: ^6.0.0
+  webview_flutter: ^4.7.0
 
 
 dev_dependencies:
@@ -92,6 +99,7 @@ flutter:
   assets:
       - lib/assets/
       - lib/assets/lang/
+      - lib/assets/sounds/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

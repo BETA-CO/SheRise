@@ -7,6 +7,7 @@ import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:sherise/colors/colors.dart';
 import 'package:sherise/firebase_options.dart';
 import 'package:sherise/features/auth/data/firebase_auth_repo.dart';
+import 'package:sherise/features/safety/safety_service.dart';
 import 'package:sherise/features/home/data/emergency_service.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:sherise/features/auth/presentation/pages/auth_flow_wrapper.dart';
@@ -61,12 +62,20 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final firebaseAuthRepo = FirebaseAuthRepo();
+  final safetyService = SafetyService(); // Initialize SafetyService
   bool? _onboardingComplete;
 
   @override
   void initState() {
     super.initState();
     _checkOnboardingStatus();
+    safetyService.init(); // Start listening for shakes
+  }
+
+  @override
+  void dispose() {
+    safetyService.dispose();
+    super.dispose();
   }
 
   Future<void> _checkOnboardingStatus() async {
