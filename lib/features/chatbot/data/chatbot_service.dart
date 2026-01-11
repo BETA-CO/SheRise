@@ -1,7 +1,9 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:sherise/secrets.dart';
 
 class ChatbotService {
-  static const String _apiKey = 'AIzaSyDTdYgKwk1M0B2Zfhsp7HzQYQbJYJBuCzg';
+  // Use key from secrets file
+  static const String _apiKey = Secrets.geminiApiKey;
 
   late final GenerativeModel _model;
   late final ChatSession _chat;
@@ -50,6 +52,10 @@ Tone: Warm, respectful, reassuring, but DIRECT and BRIEF when needed.''',
       return response.text ??
           "I'm having trouble understanding. Please try again.";
     } catch (e) {
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('HandshakeException')) {
+        return "⚠️ **OFFLINE MODE**\n\nI cannot connect to the internet right now.\n\n**If you are in danger:**\n1. Press the big RED SOS button on the home screen.\n2. Dial **100** (Police) or **1091** (Women's Helpline) immediately.";
+      }
       return "I'm having trouble connecting. Please check your internet or try again later. (Error: $e)";
     }
   }

@@ -10,13 +10,17 @@ class MyTextfield extends StatelessWidget {
     required this.controller,
     required this.hintText,
     this.obscureText = false,
+    this.keyboardType,
   });
+
+  final TextInputType? keyboardType;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
       obscureText: obscureText,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),

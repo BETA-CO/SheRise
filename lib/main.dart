@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_core/firebase_core.dart';
+// await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:sherise/colors/colors.dart';
-import 'package:sherise/firebase_options.dart';
-import 'package:sherise/features/auth/data/firebase_auth_repo.dart';
-import 'package:sherise/features/safety/safety_service.dart';
+// import 'package:sherise/firebase_options.dart';
+import 'package:sherise/features/auth/data/local_auth_repo.dart';
+// import 'package:sherise/features/safety/safety_service.dart';
 import 'package:sherise/features/home/data/emergency_service.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:sherise/features/auth/presentation/pages/auth_flow_wrapper.dart';
 import 'package:sherise/features/onboarding/presentation/pages/landing_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sherise/core/utils/smooth_scroll_behavior.dart';
 
 // Background Callback for Home Widget
 @pragma('vm:entry-point')
@@ -33,7 +34,7 @@ void main() async {
     ),
   );
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await EasyLocalization.ensureInitialized();
 
   runApp(
@@ -61,20 +62,17 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final firebaseAuthRepo = FirebaseAuthRepo();
-  final safetyService = SafetyService(); // Initialize SafetyService
+  final authRepo = LocalAuthRepo();
   bool? _onboardingComplete;
 
   @override
   void initState() {
     super.initState();
     _checkOnboardingStatus();
-    safetyService.init(); // Start listening for shakes
   }
 
   @override
   void dispose() {
-    safetyService.dispose();
     super.dispose();
   }
 
@@ -100,16 +98,28 @@ class _MyAppState extends State<MyApp> {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>(
-          create: (context) =>
-              AuthCubit(authRepo: firebaseAuthRepo)..checkAuth(),
+          create: (context) => AuthCubit(authRepo: authRepo)..checkAuth(),
         ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: lightmode,
+        theme: lightmode.copyWith(
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: {
+              TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            },
+          ),
+        ),
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
+        builder: (context, child) {
+          return ScrollConfiguration(
+            behavior: SmoothScrollBehavior(),
+            child: child!,
+          );
+        },
         home: _onboardingComplete!
             ? const AuthFlowWrapper()
             : const LandingPage(),

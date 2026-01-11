@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'Videos/NGO_Videos.dart';
-import 'Videos/Health_Videos.dart';
+import 'Videos/ngo_videos.dart';
+import 'Videos/health_videos.dart';
 import 'Videos/SelfDefence_Videos.dart';
-import 'Videos/Cancer_Awareness.dart';
+import 'Videos/cancer_awareness.dart';
 
 class VideosPage extends StatefulWidget {
   const VideosPage({super.key});
@@ -55,7 +55,7 @@ class _VideosPageState extends State<VideosPage> {
                         _buildVideoCard(
                           title: 'ngo_seminars'.tr(),
                           gradientColors: [
-                            Colors.pinkAccent.withOpacity(0.35),
+                            Colors.pinkAccent.withValues(alpha: 0.35),
                             Colors.white,
                           ],
                           onTap: () {
@@ -71,7 +71,7 @@ class _VideosPageState extends State<VideosPage> {
                         _buildVideoCard(
                           title: 'health_awareness'.tr(),
                           gradientColors: [
-                            Colors.teal.withOpacity(0.35),
+                            Colors.teal.withValues(alpha: 0.35),
                             Colors.white,
                           ],
                           onTap: () {
@@ -88,7 +88,7 @@ class _VideosPageState extends State<VideosPage> {
                         _buildVideoCard(
                           title: 'self_defence'.tr(),
                           gradientColors: [
-                            Colors.orangeAccent.withOpacity(0.35),
+                            Colors.orangeAccent.withValues(alpha: 0.35),
                             Colors.white,
                           ],
                           onTap: () {
@@ -104,7 +104,7 @@ class _VideosPageState extends State<VideosPage> {
                         _buildVideoCard(
                           title: 'cancer_awareness'.tr(),
                           gradientColors: [
-                            Colors.purpleAccent.withOpacity(0.35),
+                            Colors.purpleAccent.withValues(alpha: 0.35),
                             Colors.white,
                           ],
                           onTap: () {
@@ -159,7 +159,7 @@ class _VideosPageState extends State<VideosPage> {
                 width: 100,
                 height: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(16),
                     bottomLeft: Radius.circular(16),
@@ -201,15 +201,6 @@ class _VideosPageState extends State<VideosPage> {
 
 class _BouncyScrollBehavior extends ScrollBehavior {
   const _BouncyScrollBehavior();
-
-  @override
-  Widget buildViewportChrome(
-    BuildContext context,
-    Widget child,
-    AxisDirection axisDirection,
-  ) {
-    return child;
-  }
 
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) {

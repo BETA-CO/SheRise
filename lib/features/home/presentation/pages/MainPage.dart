@@ -87,6 +87,8 @@ class _MainPageState extends State<MainPage> {
         ),
         child: PageView(
           controller: _pageController,
+          allowImplicitScrolling:
+              true, // Smooth swipe by pre-rendering adjacent tabs
           physics: const BouncingScrollPhysics(),
           onPageChanged: _onPageChanged,
           children: _pages,

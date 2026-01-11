@@ -15,6 +15,11 @@ class Authenticated extends AuthState {
 
 class Unauthenticated extends AuthState {}
 
+class AuthCodeSent extends AuthState {
+  final String verificationId;
+  AuthCodeSent(this.verificationId);
+}
+
 class AuthError extends AuthState {
   final String message;
   AuthError(this.message);
