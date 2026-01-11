@@ -1,62 +1,58 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:telephony/telephony.dart';
 import 'package:vibration/vibration.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:sherise/features/safety/shake_detector.dart';
+// import 'package:sherise/features/safety/shake_detector.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SafetyService {
-  final Telephony _telephony = Telephony.instance;
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  ShakeDetector? _shakeDetector;
-  bool _ispanicModeActive = false;
+  static final SafetyService _instance = SafetyService._internal();
 
-  // Initialize the safety service
-  void init() {
-    _shakeDetector = ShakeDetector(onPhoneShake: _triggerPanicMode);
-    _shakeDetector?.startListening();
+  factory SafetyService() {
+    return _instance;
   }
 
+  SafetyService._internal();
+
+  final Telephony _telephony = Telephony.instance;
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _ispanicModeActive = false;
+
   void dispose() {
-    _shakeDetector?.stopListening();
     _audioPlayer.dispose();
   }
 
-  Future<void> _triggerPanicMode() async {
-    if (_ispanicModeActive) return;
-    _ispanicModeActive = true;
+  // --- Public Methods for SOS Button ---
 
-    // 1. Vibrate
-    if (await Vibration.hasVibrator() ?? false) {
-      Vibration.vibrate(
-        pattern: [500, 1000, 500, 1000],
-        intensities: [1, 255, 1, 255],
-      );
-    }
-
-    // 2. Play Sound (Siren)
-    // Assuming we have a siren.mp3 in assets/sounds/ or we can play a system sound
-    // For now, let's just use vibration as the primary feedback if sound is missing,
-    // but code is here for sound.
+  Future<void> startSiren() async {
     try {
-      await _audioPlayer.setSource(AssetSource('sounds/siren.mp3'));
+      // Use BytesSource to play from rootBundle regardless of asset prefix
+      final bytes = await rootBundle.load('lib/assets/sounds/siren.mp3');
+      await _audioPlayer.setSource(BytesSource(bytes.buffer.asUint8List()));
       await _audioPlayer.resume();
     } catch (e) {
-      print("Audio player error: $e");
+      debugPrint("Audio player error (Assets missing?): $e");
     }
-
-    // 3. Send SMS with Location
-    await _sendEmergencySMS();
-
-    // Reset panic mode after some time or manual stop
-    Future.delayed(const Duration(seconds: 10), () {
-      _stopPanicMode();
-    });
   }
+
+  Future<void> stopSiren() async {
+    await _audioPlayer.stop();
+  }
+
+  Future<void> sendEmergencySMS() async {
+    await _sendEmergencySMS();
+  }
+
+  // --- Internal Logic ---
+
+  // --- Internal Logic ---
 
   Future<void> _stopPanicMode() async {
     _ispanicModeActive = false;
-    await _audioPlayer.stop();
+    await stopSiren();
     Vibration.cancel();
   }
 
@@ -67,7 +63,9 @@ class SafetyService {
 
     try {
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       String googleMapsLink =
@@ -75,18 +73,40 @@ class SafetyService {
       String message =
           "HELP! I need emergency assistance. My location: $googleMapsLink";
 
-      // TODO: Replace with actual emergency contacts from user settings
-      List<String> recipients = ["1234567890"];
+      final prefs = await SharedPreferences.getInstance();
+      String? primaryContact = prefs.getString('emergency_contact');
+      List<String>? otherContacts = prefs.getStringList(
+        'emergency_contacts_list',
+      );
+
+      List<String> recipients = [];
+
+      // Add primary contact
+      if (primaryContact != null && primaryContact.isNotEmpty) {
+        recipients.add(primaryContact);
+      }
+
+      // Add other contacts from trusted circle
+      if (otherContacts != null) {
+        recipients.addAll(otherContacts);
+      }
+
+      // Deduplicate
+      recipients = recipients.toSet().toList();
+
+      if (recipients.isEmpty) {
+        debugPrint("No emergency contacts saved!");
+        return;
+      }
 
       for (String recipient in recipients) {
         await _telephony.sendSms(to: recipient, message: message);
       }
     } catch (e) {
-      print("Error sending emergency SMS: $e");
+      debugPrint("Error sending emergency SMS: $e");
     }
   }
 
-  // Live Location Sharing (Passive)
   // Live Location Sharing (Passive)
   Timer? _locationTimer;
   bool _isSharingLocation = false;
@@ -124,7 +144,9 @@ class SafetyService {
   }) async {
     try {
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       String googleMapsLink =
@@ -138,7 +160,7 @@ class SafetyService {
         await _telephony.sendSms(to: recipient, message: message);
       }
     } catch (e) {
-      print("Error sharing location: $e");
+      debugPrint("Error sharing location: $e");
     }
   }
 }

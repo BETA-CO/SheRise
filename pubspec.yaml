@@ -37,7 +37,7 @@ dependencies:
   firebase_core: ^4.1.1
   flutter_bloc: ^9.1.1
   firebase_auth: ^6.1.0
-  google_sign_in: ^6.2.1
+  google_sign_in: ^7.2.0
   sign_in_with_apple: ^7.0.1
   google_nav_bar: ^5.0.7
   intl: ^0.20.2
@@ -51,32 +51,31 @@ dependencies:
   permission_handler: ^12.0.1
   easy_localization: ^3.0.7
   flutter_native_contact_picker: ^0.0.6
-  home_widget: ^0.8.1
+  home_widget: ^0.9.0
   google_generative_ai: ^0.4.0
   flutter_markdown: ^0.7.7+1
   scrollable_positioned_list: ^0.3.8
   local_auth: ^3.0.0
   local_auth_platform_interface: ^1.1.0
-  dtd: ^4.0.0
-  flutter_lints: ^6.0.0
-  google_fonts: ^6.3.2
-  json_rpc_2: ^4.0.0
+  google_fonts: ^7.0.0
   path: ^1.9.1
-  stack_trace: ^1.12.1
   url_launcher: ^6.3.2
-  web: ^1.1.1
   battery_plus: ^7.0.0
   connectivity_plus: ^7.0.0
   cloud_firestore: ^6.1.0
   sensors_plus: ^7.0.0
+  package_info_plus: ^8.0.0
   vibration: ^3.1.5
   audioplayers: ^6.0.0
   webview_flutter: ^4.7.0
+  flutter_background_service: ^5.1.0
+  flutter_local_notifications: ^19.5.0
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^6.0.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

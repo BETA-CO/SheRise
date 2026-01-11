@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -5,6 +6,8 @@ import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart
 import 'package:sherise/features/auth/presentation/pages/pin_lock_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:sherise/features/home/presentation/pages/MainPage.dart';
 
 class SetupPage extends StatefulWidget {
   const SetupPage({super.key});
@@ -22,6 +25,10 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
   final FlutterNativeContactPicker _contactPicker =
       FlutterNativeContactPicker();
   bool _appLockEnabled = false;
+
+  // Profile Picture State
+  File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -48,6 +55,32 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
           _phoneController.text = contact;
         }
       });
+      // Load existing profile pic if needed, usually passed from AuthCubit but local state for setup is fine
+      // If we wanted to show existing, we'd grab it from cubit.
+      // _profileImage = File(context.read<AuthCubit>().currentUser?.profilePicPath ?? "");
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _profileImage = File(image.path);
+      });
+      _saveProfilePic(image.path);
+    }
+  }
+
+  Future<void> _saveProfilePic(String path) async {
+    final user = context.read<AuthCubit>().currentUser;
+    if (user != null) {
+      // We need to keep existing data, just update the profile pic
+      await context.read<AuthCubit>().saveUserDetails(
+        name: user.name ?? "",
+        surname: user.surname ?? "",
+        dob: user.dob ?? DateTime.now(),
+        profilePicPath: path,
+      );
     }
   }
 
@@ -77,7 +110,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
       // Check if PIN is set
       final pin = prefs.getString('app_pin');
       if (pin == null) {
-        if (!mounted) return; // Fix async gap
+        if (!mounted) return;
         // Navigate to PIN setup
         final result = await Navigator.push<bool>(
           context,
@@ -152,11 +185,18 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
   }
 
   Future<void> _finishSetup() async {
-    // Mark setup as complete in Cubit, which triggers main.dart to show MainPage
     if (mounted) {
-      // We don't need to await this, it's a synchronous state emission
-      // But we should ensure the widget is still mounted
-      context.read<AuthCubit>().completeSetup();
+      // 1. Mark setup as complete in backend/repo
+      await context.read<AuthCubit>().completeSetup();
+
+      // 2. Force navigation to MainPage
+      // Using pushAndRemoveUntil ensures we reset the stack and don't go back to setup
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const MainPage()),
+          (route) => false,
+        );
+      }
     }
   }
 
@@ -201,6 +241,60 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Profile Picture Section
+                          const SizedBox(height: 20),
+                          Center(
+                            child: GestureDetector(
+                              onTap: _pickImage,
+                              child: Stack(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 60,
+                                    backgroundColor: Colors.grey[200],
+                                    backgroundImage: _profileImage != null
+                                        ? FileImage(_profileImage!)
+                                        : null,
+                                    child: _profileImage == null
+                                        ? Icon(
+                                            Icons.person,
+                                            size: 60,
+                                            color: Colors.grey[400],
+                                          )
+                                        : null,
+                                  ),
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.pinkAccent,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.camera_alt,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Center(
+                            child: Text(
+                              "Set Profile Picture",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[700],
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+
                           // AI Support Info
                           Container(
                             padding: const EdgeInsets.all(16),
@@ -441,7 +535,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                               value: _callEnabled,
                               onChanged: _toggleCallEnabled,
                               activeThumbImage: null,
-                              activeColor: Colors.pinkAccent,
+                              activeTrackColor: Colors.pinkAccent,
                             ),
                           ),
 
@@ -481,7 +575,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                               ),
                               value: _appLockEnabled,
                               onChanged: _toggleAppLock,
-                              activeColor: Colors.pinkAccent,
+                              activeTrackColor: Colors.pinkAccent,
                             ),
                           ),
 

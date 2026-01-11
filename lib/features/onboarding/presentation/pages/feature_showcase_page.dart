@@ -13,6 +13,12 @@ class _FeatureShowcasePageState extends State<FeatureShowcasePage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   final List<Map<String, dynamic>> _features = [
     {
       'title': 'Emergency SOS',
@@ -38,6 +44,8 @@ class _FeatureShowcasePageState extends State<FeatureShowcasePage> {
   ];
 
   Future<void> _completeOnboarding() async {
+    // Permissions are now deferred to HomePage
+    // Just mark onboarding as complete
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_complete', true);
 
@@ -170,7 +178,7 @@ class _FeatureShowcasePageState extends State<FeatureShowcasePage> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: feature['color'].withOpacity(0.2),
+                  color: feature['color'].withValues(alpha: 0.2),
                   blurRadius: 30,
                   spreadRadius: 10,
                 ),

@@ -68,10 +68,10 @@ class _BreathingGameState extends State<BreathingGame>
                   height: _animation.value,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.blue.withOpacity(0.4),
+                    color: Colors.blue.withValues(alpha: 0.4),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.blue.withOpacity(0.2),
+                        color: Colors.blue.withValues(alpha: 0.2),
                         blurRadius: 20,
                         spreadRadius: 10,
                       ),

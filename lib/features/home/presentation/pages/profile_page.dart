@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_states.dart';
+import 'package:sherise/features/onboarding/presentation/pages/landing_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -26,9 +27,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadSavedImage() async {
     final prefs = await SharedPreferences.getInstance();
-    final imagePath = prefs.getString('profile_image');
+    // Check both keys to be safe, prioritizing the one used by AuthRepo
+    String? imagePath = prefs.getString('user_profile_pic');
+    imagePath ??= prefs.getString('profile_image');
+
     if (imagePath != null && File(imagePath).existsSync()) {
-      setState(() => _profileImage = File(imagePath));
+      setState(() => _profileImage = File(imagePath!));
     }
   }
 
@@ -90,9 +94,16 @@ class _ProfilePageState extends State<ProfilePage> {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is Authenticated) {
                       final user = state.user;
-                      final email = user.email.isNotEmpty
-                          ? user.email
-                          : "user@email.com";
+                      // Display Name instead of Email/Phone
+                      final surname = user.surname ?? "";
+                      final userName = user.name != null
+                          ? "${user.name!} $surname".trim()
+                          : "User";
+                      final userAge = user.age ?? "N/A";
+                      final userDob = user.dob != null
+                          ? DateFormat('dd MMM yyyy').format(user.dob!)
+                          : "N/A";
+
                       DateTime? creationDate = user.creationTime;
                       String formattedDate = creationDate != null
                           ? DateFormat('MMMM yyyy').format(creationDate)
@@ -102,8 +113,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         behavior: const _BouncyScrollBehavior(),
                         child: _buildProfileContent(
                           context,
-                          email,
+                          userName,
+                          userAge,
+                          userDob,
                           formattedDate,
+                          user.profilePicPath,
                         ),
                       );
                     } else if (state is Unauthenticated) {
@@ -123,8 +137,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildProfileContent(
     BuildContext context,
-    String email,
+    String name,
+    String age,
+    String dob,
     String memberSince,
+    String? profilePicPath,
   ) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
@@ -137,10 +154,14 @@ class _ProfilePageState extends State<ProfilePage> {
               CircleAvatar(
                 radius: 60,
                 backgroundColor: Colors.pink.shade100,
-                backgroundImage: _profileImage != null
-                    ? FileImage(_profileImage!)
-                    : const AssetImage('lib/assets/home page logo.png')
-                          as ImageProvider,
+                backgroundImage:
+                    (profilePicPath != null &&
+                        File(profilePicPath).existsSync())
+                    ? FileImage(File(profilePicPath))
+                    : (_profileImage != null
+                          ? FileImage(_profileImage!)
+                          : const AssetImage('lib/assets/home page logo.png')
+                                as ImageProvider),
               ),
               Positioned(
                 bottom: 0,
@@ -166,32 +187,35 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 25),
           Text(
-            email,
+            "Hello, $name",
             style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
           ),
           const SizedBox(height: 15),
           const Divider(color: Colors.black26),
           const SizedBox(height: 15),
+          _buildInfoRow(Icons.cake_outlined, 'Age', age),
+          const SizedBox(height: 15),
+          _buildInfoRow(Icons.calendar_month_outlined, 'Date of Birth', dob),
+          const SizedBox(height: 15),
           _buildInfoRow(
             Icons.calendar_today_outlined,
-            'member_since'.tr(), // 👈
+            'member_since'.tr(),
             memberSince,
           ),
           const SizedBox(height: 15),
           _buildInfoRow(
             Icons.settings_outlined,
-            'account_settings'.tr(), // 👈
-            'manage_preferences'.tr(), // 👈
+            'account_settings'.tr(),
+            'manage_preferences'.tr(),
           ),
           const SizedBox(height: 30),
           const Divider(color: Colors.black26),
           const SizedBox(height: 20),
-          _buildDeleteAccount(context),
-          const SizedBox(height: 10),
+          // Delete Account button removed as per request
           _buildLogout(context),
         ],
       ),
@@ -245,41 +269,17 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildDeleteAccount(BuildContext context) {
-    return InkWell(
-      onTap: () => _showDeleteAccountDialog(context),
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            const Icon(Icons.delete_outline, color: Colors.red, size: 24),
-            const SizedBox(width: 16),
-            Text(
-              'delete_account'.tr(), // 👈
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.red,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          'confirm_logout'.tr(), // 👈
+          'confirm_logout'.tr(),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         content: Text(
-          'logout_prompt'.tr(), // 👈
+          'logout_prompt'.tr(),
           style: const TextStyle(fontSize: 15),
         ),
         actions: [
@@ -288,7 +288,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Text(
               'cancel'.tr(),
               style: const TextStyle(color: Colors.grey),
-            ), // 👈
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -298,54 +298,17 @@ class _ProfilePageState extends State<ProfilePage> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              context.read<AuthCubit>().logout();
+              await context.read<AuthCubit>().logout();
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const LandingPage()),
+                  (route) => false,
+                );
+              }
             },
-            child: Text('logout'.tr()), // 👈
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteAccountDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          'delete_account'.tr(), // 👈
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Color(0xFFFF0000),
-          ),
-        ),
-        content: Text(
-          'delete_prompt'.tr(), // 👈
-          style: const TextStyle(fontSize: 15),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'cancel'.tr(),
-              style: const TextStyle(color: Colors.grey),
-            ), // 👈
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF7070),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<AuthCubit>().deleteAccount();
-            },
-            child: Text('delete'.tr()), // 👈
+            child: Text('logout'.tr()),
           ),
         ],
       ),

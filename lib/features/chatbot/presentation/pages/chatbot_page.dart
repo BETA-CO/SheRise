@@ -503,11 +503,11 @@ class _ChatBotPageState extends State<ChatBotPage> {
                         child: FloatingActionButton(
                           mini: true,
                           backgroundColor: Colors.white,
+                          onPressed: _scrollToBottom,
                           child: const Icon(
                             Icons.arrow_downward,
                             color: Colors.pinkAccent,
                           ),
-                          onPressed: _scrollToBottom,
                         ),
                       ),
                   ],
@@ -522,7 +522,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, -5),
                       ),

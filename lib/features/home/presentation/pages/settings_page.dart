@@ -20,6 +20,7 @@ class _SettingsPageState extends State<SettingsPage>
   final TextEditingController _phoneController = TextEditingController();
   final FlutterNativeContactPicker _contactPicker =
       FlutterNativeContactPicker();
+  List<String> _emergencyContacts = [];
 
   @override
   void initState() {
@@ -44,22 +45,59 @@ class _SettingsPageState extends State<SettingsPage>
 
   Future<void> _loadEmergencyContact() async {
     final prefs = await SharedPreferences.getInstance();
-    final contact = prefs.getString('emergency_contact');
+    // Load list
+    final contacts = prefs.getStringList('emergency_contacts_list') ?? [];
+    // Load legacy single contact for migration
+    final singleContact = prefs.getString('emergency_contact');
+
+    if (singleContact != null &&
+        singleContact.isNotEmpty &&
+        !contacts.contains(singleContact)) {
+      contacts.add(singleContact);
+      await prefs.setStringList('emergency_contacts_list', contacts);
+      // Optional: Clear legacy key
+      // await prefs.remove('emergency_contact');
+    }
+
     final callEnabled = prefs.getBool('emergency_call_enabled') ?? true;
+    final appLockEnabled = prefs.getBool('app_lock_enabled') ?? false;
+
     if (mounted) {
       setState(() {
-        if (contact != null) {
-          _phoneController.text = contact;
-        }
+        _emergencyContacts = contacts;
         _callEnabled = callEnabled;
-        _appLockEnabled = prefs.getBool('app_lock_enabled') ?? false;
+        _appLockEnabled = appLockEnabled;
       });
     }
   }
 
-  Future<void> _saveEmergencyContact(String value) async {
+  Future<void> _addEmergencyContact(String number) async {
+    // Basic validation/cleaning
+    // String cleaned = number.replaceAll(RegExp(r'[^\d+]'), '');
+    if (!_emergencyContacts.contains(number)) {
+      setState(() {
+        _emergencyContacts.add(number);
+      });
+      await _saveContacts();
+    }
+  }
+
+  Future<void> _removeEmergencyContact(String number) async {
+    setState(() {
+      _emergencyContacts.remove(number);
+    });
+    await _saveContacts();
+  }
+
+  Future<void> _saveContacts() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('emergency_contact', value);
+    await prefs.setStringList('emergency_contacts_list', _emergencyContacts);
+    // Sync primary contact for backward compatibility if needed
+    if (_emergencyContacts.isNotEmpty) {
+      await prefs.setString('emergency_contact', _emergencyContacts.first);
+    } else {
+      await prefs.remove('emergency_contact');
+    }
   }
 
   Future<void> _toggleCallEnabled(bool value) async {
@@ -79,6 +117,7 @@ class _SettingsPageState extends State<SettingsPage>
       final pin = prefs.getString('app_pin');
       if (pin == null) {
         // Navigate to PIN setup
+        if (!mounted) return;
         final result = await Navigator.push<bool>(
           context,
           MaterialPageRoute(
@@ -88,9 +127,11 @@ class _SettingsPageState extends State<SettingsPage>
 
         if (result == true) {
           await prefs.setBool('app_lock_enabled', true);
-          setState(() {
-            _appLockEnabled = true;
-          });
+          if (mounted) {
+            setState(() {
+              _appLockEnabled = true;
+            });
+          }
         }
       } else {
         await prefs.setBool('app_lock_enabled', true);
@@ -201,7 +242,7 @@ class _SettingsPageState extends State<SettingsPage>
                                 borderRadius: BorderRadius.circular(14),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.08),
+                                    color: Colors.black.withValues(alpha: 0.08),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),
@@ -240,7 +281,9 @@ class _SettingsPageState extends State<SettingsPage>
                                     borderRadius: BorderRadius.circular(12),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
+                                        ),
                                         blurRadius: 8,
                                         offset: const Offset(0, 3),
                                       ),
@@ -292,7 +335,7 @@ class _SettingsPageState extends State<SettingsPage>
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             child: Divider(
-                              color: Colors.grey.withOpacity(0.25),
+                              color: Colors.grey.withValues(alpha: 0.25),
                               thickness: 0.7,
                             ),
                           ),
@@ -301,47 +344,91 @@ class _SettingsPageState extends State<SettingsPage>
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
-                              vertical: 4,
+                              vertical: 12,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
-                            child: TextField(
-                              controller: _phoneController,
-                              keyboardType: TextInputType.phone,
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-                                hintText: 'enter_phone_number'.tr(),
-                                prefixIcon: const Icon(
-                                  Icons.phone,
-                                  color: Colors.black,
-                                ),
-                                suffixIcon: IconButton(
-                                  icon: const Icon(
-                                    Icons.contacts,
-                                    color: Colors.black,
+                            child: Column(
+                              children: [
+                                // Add Button
+                                InkWell(
+                                  onTap: _pickContact,
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.pinkAccent.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.add,
+                                          color: Colors.pinkAccent,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        "Add Trusted Contact",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.pinkAccent,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  onPressed: _pickContact,
                                 ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 15,
-                                ),
-                              ),
-                              onChanged: _saveEmergencyContact,
+                                if (_emergencyContacts.isNotEmpty) ...[
+                                  const SizedBox(height: 16),
+                                  const Divider(height: 1),
+                                  const SizedBox(height: 8),
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: _emergencyContacts.length,
+                                    itemBuilder: (context, index) {
+                                      final contact = _emergencyContacts[index];
+                                      return ListTile(
+                                        contentPadding: EdgeInsets.zero,
+                                        leading: const Icon(
+                                          Icons.person_outline,
+                                        ),
+                                        title: Text(contact),
+                                        trailing: IconButton(
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                            color: Colors.red,
+                                          ),
+                                          onPressed: () =>
+                                              _removeEmergencyContact(contact),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ] else
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 12.0),
+                                    child: const Text("No contacts added yet."),
+                                  ),
+                              ],
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             child: Divider(
-                              color: Colors.grey.withOpacity(0.25),
+                              color: Colors.grey.withValues(alpha: 0.25),
                               thickness: 0.7,
                             ),
                           ),
@@ -357,7 +444,7 @@ class _SettingsPageState extends State<SettingsPage>
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -380,13 +467,13 @@ class _SettingsPageState extends State<SettingsPage>
                               ),
                               value: _callEnabled,
                               onChanged: _toggleCallEnabled,
-                              activeColor: Colors.pinkAccent,
+                              activeThumbColor: Colors.pinkAccent,
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             child: Divider(
-                              color: Colors.grey.withOpacity(0.25),
+                              color: Colors.grey.withValues(alpha: 0.25),
                               thickness: 0.7,
                             ),
                           ),
@@ -402,7 +489,7 @@ class _SettingsPageState extends State<SettingsPage>
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 ),
@@ -427,7 +514,7 @@ class _SettingsPageState extends State<SettingsPage>
                                   ),
                                   value: _appLockEnabled,
                                   onChanged: _toggleAppLock,
-                                  activeColor: Colors.pinkAccent,
+                                  activeThumbColor: Colors.pinkAccent,
                                 ),
                                 if (_appLockEnabled) ...[
                                   const Divider(),
@@ -463,7 +550,7 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _dividerLine() => Divider(
-    color: Colors.grey.withOpacity(0.2),
+    color: Colors.grey.withValues(alpha: 0.2),
     height: 0,
     thickness: 0.6,
     indent: 12,
@@ -527,10 +614,7 @@ class _SettingsPageState extends State<SettingsPage>
         String number = contact.phoneNumbers!.first;
         // Optional: Clean the number (remove spaces, dashes, etc.)
         // number = number.replaceAll(RegExp(r'[^\d+]'), '');
-        setState(() {
-          _phoneController.text = number;
-        });
-        _saveEmergencyContact(number);
+        _addEmergencyContact(number);
       }
     } catch (e) {
       // User cancelled or error
