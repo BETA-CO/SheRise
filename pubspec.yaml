@@ -70,6 +70,10 @@ dependencies:
   webview_flutter: ^4.7.0
   flutter_background_service: ^5.1.0
   flutter_local_notifications: ^19.5.0
+  dio: ^5.9.0
+  video_player: ^2.10.1
+  chewie: ^1.13.0
+  open_file: ^3.5.11
 
 
 dev_dependencies:
@@ -99,6 +103,7 @@ flutter:
       - lib/assets/
       - lib/assets/lang/
       - lib/assets/sounds/
+      - lib/assets/video cards/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
