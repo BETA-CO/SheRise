@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'Videos/ngo_videos.dart';
-import 'Videos/health_videos.dart';
-import 'Videos/SelfDefence_Videos.dart';
-import 'Videos/cancer_awareness.dart';
+import 'package:sherise/features/videos/presentation/pages/video_list_page.dart';
 
 class VideosPage extends StatefulWidget {
   const VideosPage({super.key});
@@ -54,15 +51,14 @@ class _VideosPageState extends State<VideosPage> {
                       children: [
                         _buildVideoCard(
                           title: 'ngo_seminars'.tr(),
-                          gradientColors: [
-                            Colors.pinkAccent.withValues(alpha: 0.35),
-                            Colors.white,
-                          ],
+                          imagePath: 'lib/assets/video cards/NGO.png',
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const NgoVideosPage(),
+                                builder: (context) => const VideoListPage(
+                                  category: 'NGO Seminars',
+                                ),
                               ),
                             );
                           },
@@ -70,16 +66,15 @@ class _VideosPageState extends State<VideosPage> {
                         const SizedBox(height: 16),
                         _buildVideoCard(
                           title: 'health_awareness'.tr(),
-                          gradientColors: [
-                            Colors.teal.withValues(alpha: 0.35),
-                            Colors.white,
-                          ],
+                          imagePath:
+                              'lib/assets/video cards/Health Awareness.png',
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    const HealthAwarenessPage(),
+                                builder: (context) => const VideoListPage(
+                                  category: 'Health Awareness',
+                                ),
                               ),
                             );
                           },
@@ -87,15 +82,14 @@ class _VideosPageState extends State<VideosPage> {
                         const SizedBox(height: 16),
                         _buildVideoCard(
                           title: 'self_defence'.tr(),
-                          gradientColors: [
-                            Colors.orangeAccent.withValues(alpha: 0.35),
-                            Colors.white,
-                          ],
+                          imagePath: 'lib/assets/video cards/Self Defence.png',
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const SelfDefencePage(),
+                                builder: (context) => const VideoListPage(
+                                  category: 'Self Defence',
+                                ),
                               ),
                             );
                           },
@@ -103,15 +97,14 @@ class _VideosPageState extends State<VideosPage> {
                         const SizedBox(height: 16),
                         _buildVideoCard(
                           title: 'cancer_awareness'.tr(),
-                          gradientColors: [
-                            Colors.purpleAccent.withValues(alpha: 0.35),
-                            Colors.white,
-                          ],
+                          imagePath: 'lib/assets/video cards/Cancer.png',
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const CancerAwareness(),
+                                builder: (context) => const VideoListPage(
+                                  category: 'Cancer Awareness',
+                                ),
                               ),
                             );
                           },
@@ -130,7 +123,7 @@ class _VideosPageState extends State<VideosPage> {
 
   Widget _buildVideoCard({
     required String title,
-    required List<Color> gradientColors,
+    required String imagePath,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -145,32 +138,30 @@ class _VideosPageState extends State<VideosPage> {
           width: double.infinity,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: gradientColors,
-              stops: const [0.1, 1.0],
-            ),
+            color: Colors.white,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
-                width: 100,
-                height: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    bottomLeft: Radius.circular(16),
-                  ),
+              // Image Section
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                 ),
-                child: const Center(
-                  child: Icon(
-                    Icons.image_outlined,
-                    color: Colors.black38,
-                    size: 40,
-                  ),
+                child: Image.asset(
+                  imagePath,
+                  width: 120,
+                  height: 120,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 120,
+                      height: 120,
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                    );
+                  },
                 ),
               ),
 
@@ -182,11 +173,14 @@ class _VideosPageState extends State<VideosPage> {
                     child: Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize:
+                            20, // Slightly reduced font size for better fit
                         fontWeight: FontWeight.w600,
                         color: Colors.black87,
                       ),
                       textAlign: TextAlign.left,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
