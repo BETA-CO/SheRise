@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
@@ -86,7 +87,7 @@ class _FakeCallPageState extends State<FakeCallPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
-                children: const [
+                children: [
                   SizedBox(height: 60),
                   CircleAvatar(
                     radius: 50,
@@ -95,7 +96,7 @@ class _FakeCallPageState extends State<FakeCallPage> {
                   ),
                   SizedBox(height: 20),
                   Text(
-                    "Mom", // Can make this customizable later
+                    "fake_caller_name".tr(), // Can make this customizable later
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 32,
@@ -104,7 +105,7 @@ class _FakeCallPageState extends State<FakeCallPage> {
                   ),
                   SizedBox(height: 10),
                   Text(
-                    "Mobile",
+                    "fake_caller_type".tr(),
                     style: TextStyle(color: Colors.white70, fontSize: 18),
                   ),
                 ],
@@ -134,8 +135,8 @@ class _FakeCallPageState extends State<FakeCallPage> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        const Text(
-                          "Decline",
+                        Text(
+                          "call_decline".tr(),
                           style: TextStyle(color: Colors.white),
                         ),
                       ],
@@ -160,8 +161,8 @@ class _FakeCallPageState extends State<FakeCallPage> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        const Text(
-                          "Accept",
+                        Text(
+                          "call_accept".tr(),
                           style: TextStyle(color: Colors.white),
                         ),
                       ],
@@ -233,8 +234,8 @@ class _DummyCallScreenState extends State<DummyCallScreen> {
                   child: Icon(Icons.person, size: 60, color: Colors.white),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  "Mom",
+                Text(
+                  "fake_caller_name".tr(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 32,
@@ -257,12 +258,12 @@ class _DummyCallScreenState extends State<DummyCallScreen> {
                 mainAxisSpacing: 20,
                 crossAxisSpacing: 20,
                 children: [
-                  _buildCallOption(Icons.mic_off, "Mute"),
-                  _buildCallOption(Icons.dialpad, "Keypad"),
-                  _buildCallOption(Icons.volume_up, "Speaker"),
-                  _buildCallOption(Icons.add, "Add Call"),
-                  _buildCallOption(Icons.videocam, "FaceTime"),
-                  _buildCallOption(Icons.contacts, "Contacts"),
+                  _buildCallOption(Icons.mic_off, "call_opt_mute".tr()),
+                  _buildCallOption(Icons.dialpad, "call_opt_keypad".tr()),
+                  _buildCallOption(Icons.volume_up, "call_opt_speaker".tr()),
+                  _buildCallOption(Icons.add, "call_opt_add".tr()),
+                  _buildCallOption(Icons.videocam, "call_opt_video".tr()),
+                  _buildCallOption(Icons.contacts, "call_opt_contacts".tr()),
                 ],
               ),
             ),

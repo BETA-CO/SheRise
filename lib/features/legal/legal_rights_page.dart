@@ -1,50 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LegalRightsPage extends StatelessWidget {
   const LegalRightsPage({super.key});
 
-  final List<Map<String, String>> rights = const [
-    {
-      "title": "Zero FIR",
-      "description":
-          "A woman can file an FIR at any police station, irrespective of where the incident occurred. The police must register it and transfer it to the relevant station later.",
-    },
-    {
-      "title": "Right to Privacy",
-      "description":
-          "Under Section 228A of the IPC, the identity of a rape victim cannot be disclosed by the police or media. She can record her statement alone or in the presence of a female officer.",
-    },
-    {
-      "title": "No Arrest After Sunset",
-      "description":
-          "According to the CrPC, a woman cannot be arrested after sunset and before sunrise, except in exceptional circumstances and with a magistrate's order.",
-    },
-    {
-      "title": "Digital Harassment",
-      "description":
-          "Under the IT Act, cyberstalking, voyeurism, and harassment via email or social media are punishable offenses. You can report these to the Cyber Crime Cell.",
-    },
-    {
-      "title": "Domestic Violence Act",
-      "description":
-          "The Protection of Women from Domestic Violence Act, 2005, protects women from physical, emotional, sexual, and economic abuse by a partner or family member.",
-    },
-    {
-      "title": "Free Legal Aid",
-      "description":
-          "Women are entitled to free legal aid under the Legal Services Authorities Act, ensuring they can access justice regardless of their financial status.",
-    },
-    {
-      "title": "Right to equal pay",
-      "description":
-          "According to the Equal Remuneration Act, women have a right to equal pay for equal work.",
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, String>> rights = [
+      {
+        "title": "right_zero_fir".tr(),
+        "description": "right_desc_zero_fir".tr(),
+      },
+      {"title": "right_privacy".tr(), "description": "right_desc_privacy".tr()},
+      {"title": "right_sunset".tr(), "description": "right_desc_sunset".tr()},
+      {"title": "right_digital".tr(), "description": "right_desc_digital".tr()},
+      {
+        "title": "right_domestic".tr(),
+        "description": "right_desc_domestic".tr(),
+      },
+      {
+        "title": "right_legal_aid".tr(),
+        "description": "right_desc_legal_aid".tr(),
+      },
+      {
+        "title": "right_equal_pay".tr(),
+        "description": "right_desc_equal_pay".tr(),
+      },
+    ];
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Legal Rights & Awareness")),
+      appBar: AppBar(title: Text("legal_title".tr())),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: rights.length,

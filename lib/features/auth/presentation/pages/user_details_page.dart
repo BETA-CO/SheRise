@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sherise/features/auth/presentation/components/my_button.dart';
 import 'package:sherise/features/auth/presentation/components/my_textfield.dart';
 import 'package:sherise/features/auth/presentation/pages/captcha_page.dart';
@@ -42,9 +43,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       // Let's treat it as a standard field.
       // Name validation: Single word only
       if (name.contains(' ')) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Name must be a single word")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("err_single_word".tr())));
         return;
       }
 
@@ -56,9 +57,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill required details")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("err_fill_details".tr())));
     }
   }
 
@@ -76,18 +77,18 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
               // Logo or Header
               // Image.asset('lib/assets/home page logo.png', height: 100), // Assuming this exists
-              const Text(
-                "Tell us about yourself",
-                style: TextStyle(
+              Text(
+                "user_details_title".tr(),
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                "We need some basic details to get started.",
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+              Text(
+                "user_details_subtitle".tr(),
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
@@ -95,7 +96,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
               // Name
               MyTextfield(
                 controller: nameController,
-                hintText: "First Name",
+                hintText: "hint_first_name".tr(),
                 obscureText: false,
               ),
               const SizedBox(height: 20),
@@ -103,7 +104,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
               // Surname
               MyTextfield(
                 controller: surnameController,
-                hintText: "Surname (Optional)",
+                hintText: "hint_surname".tr(),
                 obscureText: false,
               ),
               const SizedBox(height: 20),
@@ -128,7 +129,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                       const SizedBox(width: 10),
                       Text(
                         selectedDate == null
-                            ? "Date of Birth"
+                            ? "label_dob".tr()
                             : "${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}",
                         style: TextStyle(
                           color: selectedDate == null
@@ -144,7 +145,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
               const SizedBox(height: 40),
 
-              MyButton(onTap: goToPhoneAuth, text: "Next"),
+              MyButton(onTap: goToPhoneAuth, text: "btn_next".tr()),
             ],
           ),
         ),

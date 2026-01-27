@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sherise/features/auth/presentation/pages/setup_page.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:provider/provider.dart';
@@ -37,15 +38,18 @@ class _CaptchaPageState extends State<CaptchaPage> {
             children: [
               const Icon(Icons.security, size: 80, color: Colors.pinkAccent),
               const SizedBox(height: 20),
-              const Text(
-                "Human Verification",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Text(
+                "captcha_title".tr(),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                "Complete the captcha to proceed.",
+              Text(
+                "captcha_subtitle".tr(),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
               ),
               const SizedBox(height: 50),
               // Simple "Fit the Piece" visual representation
@@ -121,9 +125,7 @@ class _CaptchaPageState extends State<CaptchaPage> {
                             _sliderValue = 0.0;
                           });
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Verification failed. Try again.'),
-                            ),
+                            SnackBar(content: Text("captcha_failed".tr())),
                           );
                         }
                       },
@@ -133,14 +135,14 @@ class _CaptchaPageState extends State<CaptchaPage> {
               ),
               const SizedBox(height: 20),
               if (_isVerified)
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.check_circle, color: Colors.green),
-                    SizedBox(width: 8),
+                    const Icon(Icons.check_circle, color: Colors.green),
+                    const SizedBox(width: 8),
                     Text(
-                      "Verified!",
-                      style: TextStyle(
+                      "captcha_verified".tr(),
+                      style: const TextStyle(
                         color: Colors.green,
                         fontWeight: FontWeight.bold,
                       ),
@@ -148,7 +150,7 @@ class _CaptchaPageState extends State<CaptchaPage> {
                   ],
                 )
               else
-                const Text("Slide to the green line to verify"),
+                Text("captcha_instruction".tr()),
             ],
           ),
         ),

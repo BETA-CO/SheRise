@@ -120,13 +120,22 @@ class _HomePageState extends State<HomePage>
                       children: [
                         Padding(
                           padding: const EdgeInsets.only(left: 8.0),
-                          child: Text(
-                            "welcome_back".tr(),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 24,
-                              color: Colors.black,
-                            ),
+                          child: BlocBuilder<AuthCubit, AuthState>(
+                            builder: (context, state) {
+                              String greeting = "welcome_back".tr();
+                              if (state is Authenticated &&
+                                  state.user.name != null) {
+                                greeting += "${state.user.name}";
+                              }
+                              return Text(
+                                greeting,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 24,
+                                  color: Colors.black,
+                                ),
+                              );
+                            },
                           ),
                         ),
                         const Spacer(),
@@ -302,9 +311,9 @@ class _HomePageState extends State<HomePage>
                                     Expanded(
                                       child: _buildFeatureButton(
                                         Icons.local_police_outlined,
-                                        "Police",
+                                        "feature_police".tr(),
                                         () => _showCallConfirmationDialog(
-                                          "Police",
+                                          "feature_police".tr(),
                                           "100",
                                         ),
                                       ),
@@ -313,9 +322,9 @@ class _HomePageState extends State<HomePage>
                                     Expanded(
                                       child: _buildFeatureButton(
                                         Icons.support_agent_outlined,
-                                        "Women Helpline",
+                                        "feature_helpline".tr(),
                                         () => _showCallConfirmationDialog(
-                                          "Women Helpline",
+                                          "feature_helpline".tr(),
                                           "1091",
                                         ),
                                       ),
@@ -328,9 +337,9 @@ class _HomePageState extends State<HomePage>
                                     Expanded(
                                       child: _buildFeatureButton(
                                         Icons.medical_services_outlined,
-                                        "Ambulance",
+                                        "feature_ambulance".tr(),
                                         () => _showCallConfirmationDialog(
-                                          "Ambulance",
+                                          "feature_ambulance".tr(),
                                           "108",
                                         ),
                                       ),
@@ -339,9 +348,9 @@ class _HomePageState extends State<HomePage>
                                     Expanded(
                                       child: _buildFeatureButton(
                                         Icons.monitor_heart_outlined,
-                                        "Medical Advice",
+                                        "feature_medical".tr(),
                                         () => _showCallConfirmationDialog(
-                                          "Medical Advice",
+                                          "feature_medical".tr(),
                                           "104",
                                         ),
                                       ),
@@ -357,7 +366,7 @@ class _HomePageState extends State<HomePage>
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                "More Features",
+                                "more_features".tr(),
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -373,7 +382,7 @@ class _HomePageState extends State<HomePage>
                               children: [
                                 _buildListFeatureButton(
                                   Icons.spa_outlined,
-                                  "Antistress",
+                                  "feature_antistress".tr(),
                                   () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -384,7 +393,7 @@ class _HomePageState extends State<HomePage>
                                 ),
                                 _buildListFeatureButton(
                                   Icons.map_outlined,
-                                  "Nearby Places",
+                                  "feature_nearby".tr(),
                                   () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -395,7 +404,7 @@ class _HomePageState extends State<HomePage>
                                 ),
                                 _buildListFeatureButton(
                                   Icons.gavel_outlined,
-                                  "Legal Rights",
+                                  "feature_legal".tr(),
                                   () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -406,7 +415,7 @@ class _HomePageState extends State<HomePage>
                                 ),
                                 _buildListFeatureButton(
                                   Icons.share_location_outlined,
-                                  "Share Location",
+                                  "feature_share_loc".tr(),
                                   () async {
                                     final prefs =
                                         await SharedPreferences.getInstance();
@@ -446,7 +455,7 @@ class _HomePageState extends State<HomePage>
                                 ),
                                 _buildListFeatureButton(
                                   Icons.call_outlined,
-                                  "Fake Call",
+                                  "feature_fake_call".tr(),
                                   () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -477,8 +486,8 @@ class _HomePageState extends State<HomePage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Call $name?"),
-        content: Text("Are you sure you want to call $number?"),
+        title: Text("confirm_call_title".tr(args: [name])),
+        content: Text("confirm_call_body".tr(args: [number])),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -513,9 +522,9 @@ class _HomePageState extends State<HomePage>
         statuses[Permission.location]?.isDenied == true) {
       // Show rationale
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Permissions needed for SOS!")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("err_permissions_sos".tr())));
       }
       return;
     }
@@ -579,8 +588,8 @@ class _HomePageState extends State<HomePage>
 
     if (contactNumber == null || contactNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please set an emergency contact in Settings first!'),
+        SnackBar(
+          content: Text("err_set_contact_first".tr()),
           backgroundColor: Colors.red,
         ),
       );
@@ -600,8 +609,11 @@ class _HomePageState extends State<HomePage>
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      String message =
-          "Your daughter needs help! Location: https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}";
+      String message = "sos_sms_body".tr(
+        args: [
+          "https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}",
+        ],
+      );
 
       // 1. Send SMS in Background using Telephony
       await telephony.sendSms(to: contactNumber, message: message).catchError((
@@ -619,9 +631,11 @@ class _HomePageState extends State<HomePage>
         await FlutterPhoneDirectCaller.callNumber(contactNumber);
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error triggering emergency: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('err_trigger_emergency'.tr(args: [e.toString()])),
+        ),
+      );
     }
   }
 

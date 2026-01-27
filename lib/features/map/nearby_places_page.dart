@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class NearbyPlacesPage extends StatefulWidget {
   const NearbyPlacesPage({super.key});
@@ -75,7 +76,7 @@ class _NearbyPlacesPageState extends State<NearbyPlacesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Nearby Safe Places")),
+      appBar: AppBar(title: Text("nearby_title".tr())),
       body: Column(
         children: [
           // Filter Buttons
@@ -87,21 +88,21 @@ class _NearbyPlacesPageState extends State<NearbyPlacesPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 _buildFilterChip(
-                  "Police",
+                  "filter_police".tr(),
                   Icons.local_police,
                   Colors.blue,
                   "police+station",
                 ),
                 const SizedBox(width: 8),
                 _buildFilterChip(
-                  "Hospitals",
+                  "filter_hospital".tr(),
                   Icons.local_hospital,
                   Colors.red,
                   "hospital",
                 ),
                 const SizedBox(width: 8),
                 _buildFilterChip(
-                  "Pharmacies",
+                  "filter_pharmacy".tr(),
                   Icons.local_pharmacy,
                   Colors.green,
                   "pharmacy",

@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:sherise/features/auth/presentation/pages/pin_lock_screen.dart';
+import 'package:sherise/core/services/localization_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -26,6 +27,7 @@ class _SettingsPageState extends State<SettingsPage>
   void initState() {
     super.initState();
     _loadEmergencyContact();
+    _refreshDownloadStatus();
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 250),
@@ -34,6 +36,27 @@ class _SettingsPageState extends State<SettingsPage>
       parent: _fadeController,
       curve: Curves.easeInOut,
     );
+  }
+
+  final Set<String> _downloadedLanguages = {};
+  final Map<String, bool> _isDownloadingMap = {};
+
+  Future<void> _refreshDownloadStatus() async {
+    final service = LocalizationService();
+    // Codes excluding 'en'
+    final codes = ['hi', 'mr', 'te', 'bn', 'pa'];
+    final downloaded = <String>{};
+    for (var code in codes) {
+      if (await service.isLanguageDownloaded(code)) {
+        downloaded.add(code);
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _downloadedLanguages.clear();
+        _downloadedLanguages.addAll(downloaded);
+      });
+    }
   }
 
   @override
@@ -379,7 +402,7 @@ class _SettingsPageState extends State<SettingsPage>
                                       ),
                                       const SizedBox(width: 12),
                                       Text(
-                                        "Add Trusted Contact",
+                                        "add_contact_btn".tr(),
                                         style: TextStyle(
                                           fontSize: 16,
                                           color: Colors.pinkAccent,
@@ -420,7 +443,7 @@ class _SettingsPageState extends State<SettingsPage>
                                 ] else
                                   Padding(
                                     padding: const EdgeInsets.only(top: 12.0),
-                                    child: const Text("No contacts added yet."),
+                                    child: Text("no_contacts".tr()),
                                   ),
                               ],
                             ),
@@ -477,7 +500,7 @@ class _SettingsPageState extends State<SettingsPage>
                               thickness: 0.7,
                             ),
                           ),
-                          _buildSectionTitle('Security'),
+                          _buildSectionTitle('security_section'.tr()),
                           const SizedBox(height: 10),
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -498,16 +521,16 @@ class _SettingsPageState extends State<SettingsPage>
                             child: Column(
                               children: [
                                 SwitchListTile(
-                                  title: const Text(
-                                    'App Lock',
-                                    style: TextStyle(
+                                  title: Text(
+                                    'app_lock'.tr(),
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
-                                  subtitle: const Text(
-                                    'Require authentication when opening app',
-                                    style: TextStyle(
+                                  subtitle: Text(
+                                    'app_lock_desc'.tr(),
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.grey,
                                     ),
@@ -519,9 +542,9 @@ class _SettingsPageState extends State<SettingsPage>
                                 if (_appLockEnabled) ...[
                                   const Divider(),
                                   ListTile(
-                                    title: const Text(
-                                      'Change PIN',
-                                      style: TextStyle(
+                                    title: Text(
+                                      'change_pin'.tr(),
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -568,41 +591,207 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildLangOption(BuildContext context, String name, Locale locale) {
+    if (locale.languageCode == 'en') {
+      return _buildEnglishOption(context, name);
+    }
+
     final isSelected = context.locale == locale;
+    final isDownloaded = _downloadedLanguages.contains(locale.languageCode);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: () => _handleLanguageTap(locale, isDownloaded),
+              child: Row(
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      color: isSelected ? Colors.pinkAccent : Colors.black87,
+                    ),
+                  ),
+                  if (isSelected) ...[
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.pinkAccent,
+                      size: 16,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+
+          if (isDownloaded)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.grey),
+              tooltip: 'Delete Language',
+              onPressed: () => _confirmDeleteLanguage(locale),
+            )
+          else
+            _isDownloadingMap[locale.languageCode] == true
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : IconButton(
+                    icon: const Icon(
+                      Icons.download_rounded,
+                      color: Colors.blueAccent,
+                    ),
+                    tooltip: 'Download Language',
+                    onPressed: () => _makePermanent(locale),
+                  ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEnglishOption(BuildContext context, String name) {
+    final isSelected = context.locale.languageCode == 'en';
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () {
-        context.setLocale(locale);
-        _closeDropdown(); // 👈 closes dropdown smoothly after selecting
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      onTap: () => _changeLanguage(const Locale('en')),
+      child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFFFE5EC) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               name,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isSelected ? Colors.pinkAccent : Colors.black87,
               ),
             ),
-            if (isSelected)
+            if (isSelected) ...[
+              const SizedBox(width: 8),
               const Icon(
                 Icons.check_circle,
                 color: Colors.pinkAccent,
-                size: 18,
+                size: 16,
               ),
+            ],
+            const Spacer(),
+            // English is always available
+            const Icon(Icons.check, color: Colors.green, size: 20),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _changeLanguage(Locale locale) async {
+    context.setLocale(locale);
+    _closeDropdown();
+  }
+
+  Future<void> _handleLanguageTap(Locale locale, bool isPersistent) async {
+    // If already persistent, or English, just switch
+    if (isPersistent || locale.languageCode == 'en') {
+      await _changeLanguage(locale);
+      return;
+    }
+
+    // Attempt to download to Temp (Session) then switch
+    try {
+      setState(() {
+        _isDownloadingMap[locale.languageCode] = true;
+      });
+
+      // Download to cache
+      await LocalizationService().downloadToTemp(locale.languageCode);
+
+      // Switch
+      await _changeLanguage(locale);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Download the language to use it offline"),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDownloadingMap[locale.languageCode] = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _makePermanent(Locale locale) async {
+    try {
+      setState(() {
+        _isDownloadingMap[locale.languageCode] = true;
+      });
+
+      await LocalizationService().makePermanent(locale.languageCode);
+      await _refreshDownloadStatus();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "${_getLanguageName(locale)} is now available offline",
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Download failed. Check internet.")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDownloadingMap[locale.languageCode] = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteLanguage(Locale locale) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Language"),
+        content: Text(
+          "Are you sure you want to delete ${_getLanguageName(locale)}?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (context.locale == locale) {
+        // Switch to English first
+        await context.setLocale(const Locale('en'));
+      }
+      await LocalizationService().deleteLocalLanguage(locale.languageCode);
+      await _refreshDownloadStatus();
+    }
   }
 
   Future<void> _pickContact() async {
