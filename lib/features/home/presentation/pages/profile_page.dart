@@ -187,7 +187,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 25),
           Text(
-            "Hello, $name",
+            'hello_user'.tr(args: [name]),
             style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -197,9 +197,9 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(height: 15),
           const Divider(color: Colors.black26),
           const SizedBox(height: 15),
-          _buildInfoRow(Icons.cake_outlined, 'Age', age),
+          _buildInfoRow(Icons.cake_outlined, 'label_age'.tr(), age),
           const SizedBox(height: 15),
-          _buildInfoRow(Icons.calendar_month_outlined, 'Date of Birth', dob),
+          _buildInfoRow(Icons.calendar_month_outlined, 'label_dob'.tr(), dob),
           const SizedBox(height: 15),
           _buildInfoRow(
             Icons.calendar_today_outlined,

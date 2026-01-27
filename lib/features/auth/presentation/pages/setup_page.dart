@@ -185,6 +185,26 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
   }
 
   Future<void> _finishSetup() async {
+    if (_profileImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('err_profile_pic'.tr()),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (_phoneController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('err_emergency_contact'.tr()),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     if (mounted) {
       // 1. Mark setup as complete in backend/repo
       await context.read<AuthCubit>().completeSetup();
@@ -225,7 +245,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                     vertical: 20,
                   ),
                   child: Text(
-                    'Welcome to SheRise',
+                    'welcome_title'.tr(),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
@@ -285,7 +305,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                           const SizedBox(height: 10),
                           Center(
                             child: Text(
-                              "Set Profile Picture",
+                              "set_profile_pic".tr(),
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.grey[700],
@@ -324,9 +344,9 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                                       color: Colors.pinkAccent,
                                     ),
                                     const SizedBox(width: 8),
-                                    const Text(
-                                      'AI Support Available',
-                                      style: TextStyle(
+                                    Text(
+                                      'ai_support_title'.tr(),
+                                      style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.pinkAccent,
@@ -335,9 +355,9 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                const Text(
-                                  'SheRise comes with an intelligent AI assistant to help you with safety tips, legal advice, and emotional support. You can access it anytime from the home screen.',
-                                  style: TextStyle(
+                                Text(
+                                  'ai_support_desc'.tr(),
+                                  style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.black87,
                                   ),
@@ -540,7 +560,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                           ),
 
                           const SizedBox(height: 24),
-                          _buildSectionTitle('Security'),
+                          _buildSectionTitle('security_section'.tr()),
                           const SizedBox(height: 10),
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -559,15 +579,15 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                               ],
                             ),
                             child: SwitchListTile(
-                              title: const Text(
-                                'App Lock',
+                              title: Text(
+                                'app_lock'.tr(),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              subtitle: const Text(
-                                'Require authentication when opening app',
+                              subtitle: Text(
+                                'app_lock_desc'.tr(),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
@@ -594,9 +614,9 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                                 ),
                                 elevation: 5,
                               ),
-                              child: const Text(
-                                'Finish Setup',
-                                style: TextStyle(
+                              child: Text(
+                                'finish_setup'.tr(),
+                                style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,

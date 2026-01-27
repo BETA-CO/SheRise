@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sherise/features/auth/data/biometric_service.dart';
 
@@ -23,15 +24,15 @@ class _PinLockScreenState extends State<PinLockScreen> {
   String _pin = "";
   String _confirmPin = "";
   bool _isConfirming = false;
-  String _message = "Enter PIN";
+  String _message = "pin_enter".tr();
 
   @override
   void initState() {
     super.initState();
     if (widget.isSetup) {
-      _message = "Set a 4-digit PIN";
+      _message = "pin_set_msg".tr();
     } else {
-      _message = "Enter PIN to Unlock";
+      _message = "pin_unlock_msg".tr();
       _triggerBiometric();
     }
   }
@@ -76,7 +77,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
           }
         } else {
           setState(() {
-            _message = "PINs do not match. Try again.";
+            _message = "pin_mismatch".tr();
             _pin = "";
             _confirmPin = "";
             _isConfirming = false;
@@ -87,7 +88,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
           _confirmPin = _pin;
           _pin = "";
           _isConfirming = true;
-          _message = "Confirm your PIN";
+          _message = "pin_confirm".tr();
         });
       }
     } else {
@@ -98,7 +99,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
         widget.onUnlock?.call();
       } else {
         setState(() {
-          _message = "Incorrect PIN";
+          _message = "pin_incorrect".tr();
           _pin = "";
         });
       }
@@ -143,7 +144,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
       backgroundColor: Colors.white,
       appBar: widget.isSetup
           ? AppBar(
-              title: const Text("Set PIN"),
+              title: Text("pin_set_title".tr()),
               leading: IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: widget.onCancel ?? () => Navigator.pop(context),

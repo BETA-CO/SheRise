@@ -14,6 +14,7 @@ import 'package:sherise/features/auth/presentation/pages/auth_flow_wrapper.dart'
 import 'package:sherise/features/onboarding/presentation/pages/landing_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sherise/core/utils/smooth_scroll_behavior.dart';
+import 'package:sherise/core/localization/file_asset_loader.dart'; // Added import
 
 // Background Callback for Home Widget
 @pragma('vm:entry-point')
@@ -48,6 +49,7 @@ void main() async {
         Locale('pa'),
       ],
       path: 'lib/assets/lang',
+      assetLoader: const FileAssetLoader(),
       fallbackLocale: const Locale('en'),
       child: const MyApp(),
     ),
