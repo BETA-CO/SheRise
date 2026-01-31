@@ -74,12 +74,14 @@ dependencies:
   video_player: ^2.10.1
   chewie: ^1.13.0
   open_file: ^3.5.11
+  flutter_native_splash: ^2.4.7
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
