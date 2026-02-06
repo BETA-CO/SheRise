@@ -105,59 +105,110 @@ class _HomePageState extends State<HomePage>
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color.fromARGB(255, 255, 236, 242), Colors.white],
+                colors: [Color.fromARGB(255, 234, 245, 255),Color(0xFFF5FAFF), Colors.white],
+                stops: [0.40,0.60, 1.0],
               ),
             ),
             child: SafeArea(
               child: Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
-                          child: BlocBuilder<AuthCubit, AuthState>(
-                            builder: (context, state) {
-                              String greeting = "welcome_back".tr();
-                              if (state is Authenticated &&
-                                  state.user.name != null) {
-                                greeting += "${state.user.name}";
-                              }
-                              return Text(
-                                greeting,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 24,
-                                  color: Colors.black,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        const Spacer(),
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: IconButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const ChatBotPage(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(
-                              Icons.message_outlined,
-                              color: Colors.black,
-                              size: 28,
-                            ),
-                          ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Color.fromARGB(255, 234, 245, 255),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.03),
+                          offset: const Offset(0, 2),
+                          blurRadius: 4.0,
+                          spreadRadius: 0.0,
                         ),
                       ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: BlocBuilder<AuthCubit, AuthState>(
+                              builder: (context, state) {
+                                String greeting = "welcome_back".tr();
+                                if (state is Authenticated &&
+                                    state.user.name != null) {
+                                  greeting += "${state.user.name}";
+                                }
+                                return Text(
+                                  greeting,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 24,
+                                    color: Colors.black,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const Spacer(),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ChatBotPage(),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF2FCF9),
+                                  borderRadius: BorderRadius.circular(30),
+                                  border: Border.all(
+                                    color: Colors.black,
+                                    width: 0.2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF00695C,
+                                      ).withOpacity(0.1),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      "AI",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Icon(
+                                      Icons.auto_awesome,
+                                      color: Color(0xFF00695C),
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   Expanded(
@@ -196,7 +247,7 @@ class _HomePageState extends State<HomePage>
                                     message,
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
-                                      color: Colors.pinkAccent,
+                                      color: Colors.black,
                                       fontStyle: FontStyle.italic,
                                       fontSize: 22,
                                       fontWeight: FontWeight.w500,
@@ -646,11 +697,12 @@ class _HomePageState extends State<HomePage>
         aspectRatio: 1.3,
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFFF2FCF9),
+            border: Border.all(color: Colors.black, width: 0.2),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: const Color(0xFF00695C).withOpacity(0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -659,7 +711,7 @@ class _HomePageState extends State<HomePage>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 32, color: Colors.pinkAccent),
+              Icon(icon, size: 32, color: const Color(0xFF00695C)),
               const SizedBox(height: 8),
               Text(
                 label,
@@ -688,11 +740,12 @@ class _HomePageState extends State<HomePage>
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFFF2FCF9),
+          border: Border.all(color: Colors.black, width: 0.2),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: const Color(0xFF00695C).withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -703,10 +756,10 @@ class _HomePageState extends State<HomePage>
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.pink.shade50,
+                color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 24, color: Colors.pinkAccent),
+              child: Icon(icon, size: 24, color: const Color(0xFF00695C)),
             ),
             const SizedBox(width: 16),
             Text(
@@ -718,7 +771,11 @@ class _HomePageState extends State<HomePage>
               ),
             ),
             const Spacer(),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Color(0xFF00695C),
+            ),
           ],
         ),
       ),

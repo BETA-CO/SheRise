@@ -23,9 +23,7 @@ class _FakeCallPageState extends State<FakeCallPage> {
   }
 
   void _startRinging() async {
-    // Play Ringtone
     try {
-      // Use BytesSource to play from rootBundle regardless of asset prefix
       final bytes = await rootBundle.load('lib/assets/sounds/ringtone.mp3');
       await _audioPlayer.setSource(BytesSource(bytes.buffer.asUint8List()));
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
@@ -34,8 +32,7 @@ class _FakeCallPageState extends State<FakeCallPage> {
       debugPrint("Error playing ringtone: $e");
     }
 
-    // Vibrate
-    if (await Vibration.hasVibrator() ?? false) {
+    if (await Vibration.hasVibrator()) {
       _vibrationTimer = Timer.periodic(const Duration(milliseconds: 1000), (
         timer,
       ) {
@@ -57,7 +54,6 @@ class _FakeCallPageState extends State<FakeCallPage> {
     _audioPlayer.stop();
     _vibrationTimer?.cancel();
     Vibration.cancel();
-    // Navigate to a "On Call" dummy screen or just pop
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const DummyCallScreen()),
@@ -71,13 +67,13 @@ class _FakeCallPageState extends State<FakeCallPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Dark background for call screen
+      backgroundColor: Colors.black,
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: NetworkImage(
               "https://w0.peakpx.com/wallpaper/5/2/HD-wallpaper-ios-14-stock-original-black-gradient-grey.jpg",
-            ), // Dark blurred bg
+            ),
             fit: BoxFit.cover,
             opacity: 0.8,
           ),
@@ -96,7 +92,7 @@ class _FakeCallPageState extends State<FakeCallPage> {
                   ),
                   SizedBox(height: 20),
                   Text(
-                    "fake_caller_name".tr(), // Can make this customizable later
+                    "fake_caller_name".tr(),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 32,
@@ -115,7 +111,6 @@ class _FakeCallPageState extends State<FakeCallPage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Decline Button
                     Column(
                       children: [
                         GestureDetector(
@@ -141,7 +136,6 @@ class _FakeCallPageState extends State<FakeCallPage> {
                         ),
                       ],
                     ),
-                    // Accept Button
                     Column(
                       children: [
                         GestureDetector(
@@ -249,7 +243,6 @@ class _DummyCallScreenState extends State<DummyCallScreen> {
                 ),
               ],
             ),
-            // Grid of buttons (Mute, Keypad, Speaker, etc)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: GridView.count(
