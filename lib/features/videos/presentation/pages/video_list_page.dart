@@ -60,6 +60,7 @@ class _VideoListPageState extends State<VideoListPage> {
     final path = '${dir.path}/${video.id}.mp4';
 
     if (isDownloaded) {
+      if (!mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -100,7 +101,7 @@ class _VideoListPageState extends State<VideoListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50], // Light neutral background
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
           widget.category,
@@ -109,70 +110,94 @@ class _VideoListPageState extends State<VideoListPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: FutureBuilder<List<Video>>(
-        future: _videosFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.black),
-            );
-          }
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Error loading videos",
-                    style: TextStyle(color: Colors.grey[600]),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.fromARGB(255, 234, 245, 255),
+              Color(0xFFF5FAFF),
+              Colors.white,
+            ],
+            stops: [0.40, 0.60, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: FutureBuilder<List<Video>>(
+            future: _videosFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF00695C)),
+                );
+              }
+              if (snapshot.hasError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        "Error loading videos",
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                      const SizedBox(height: 20),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _videosFuture = _repository.getVideos().then((
+                              list,
+                            ) {
+                              return list
+                                  .where((v) => v.category == widget.category)
+                                  .toList();
+                            });
+                          });
+                        },
+                        child: const Text(
+                          "Retry",
+                          style: TextStyle(color: Color(0xFF00695C)),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _videosFuture = _repository.getVideos().then((list) {
-                          return list
-                              .where((v) => v.category == widget.category)
-                              .toList();
-                        });
-                      });
-                    },
-                    child: const Text(
-                      "Retry",
-                      style: TextStyle(color: Colors.black),
-                    ),
+                );
+              }
+
+              final videos = snapshot.data ?? [];
+              if (videos.isEmpty) {
+                return Center(
+                  child: Text(
+                    "No videos available",
+                    style: TextStyle(color: Colors.grey[500], fontSize: 16),
                   ),
-                ],
-              ),
-            );
-          }
+                );
+              }
 
-          final videos = snapshot.data ?? [];
-          if (videos.isEmpty) {
-            return Center(
-              child: Text(
-                "No videos available",
-                style: TextStyle(color: Colors.grey[500], fontSize: 16),
-              ),
-            );
-          }
-
-          return ListView.separated(
-            padding: const EdgeInsets.all(20),
-            itemCount: videos.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 20),
-            itemBuilder: (context, index) {
-              final video = videos[index];
-              return _buildModernVideoCard(video);
+              return ListView.separated(
+                padding: const EdgeInsets.all(20),
+                itemCount: videos.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 20),
+                itemBuilder: (context, index) {
+                  final video = videos[index];
+                  return _buildModernVideoCard(video);
+                },
+              );
             },
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -184,9 +209,10 @@ class _VideoListPageState extends State<VideoListPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.black, width: 0.1),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: const Color(0xFF00695C).withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -221,7 +247,7 @@ class _VideoListPageState extends State<VideoListPage> {
                           width: 50,
                           height: 50,
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.6),
+                            color: const Color(0xFF00695C).withOpacity(0.8),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -275,13 +301,13 @@ class _VideoListPageState extends State<VideoListPage> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: const Color(0xFFF2FCF9),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.download_rounded,
                         size: 20,
-                        color: Colors.black54,
+                        color: Color(0xFF00695C),
                       ),
                     ),
                 ],
@@ -353,6 +379,7 @@ class _DownloadDialogState extends State<_DownloadDialog> {
           if (mounted) setState(() => _progress = progress);
         },
       );
+      if (!mounted) return;
       widget.onCompleted(path);
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());

@@ -233,7 +233,12 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color.fromARGB(255, 255, 236, 242), Colors.white],
+              colors: [
+                Color.fromARGB(255, 234, 245, 255),
+                Color(0xFFF5FAFF),
+                Colors.white,
+              ],
+              stops: [0.40, 0.60, 1.0],
             ),
           ),
           child: SafeArea(
@@ -288,12 +293,12 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                                     child: Container(
                                       padding: const EdgeInsets.all(4),
                                       decoration: const BoxDecoration(
-                                        color: Colors.pinkAccent,
+                                        color: Color(0xFFF2FCF9),
                                         shape: BoxShape.circle,
                                       ),
                                       child: const Icon(
                                         Icons.camera_alt,
-                                        color: Colors.white,
+                                        color: Color(0xFF00695C),
                                         size: 20,
                                       ),
                                     ),
@@ -323,16 +328,11 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.pinkAccent.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
-                              border: Border.all(
-                                color: Colors.pinkAccent.withValues(alpha: 0.3),
-                              ),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,7 +341,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                                   children: [
                                     const Icon(
                                       Icons.auto_awesome,
-                                      color: Colors.pinkAccent,
+                                      color: Color(0xFF00695C),
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
@@ -349,7 +349,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                                       style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.pinkAccent,
+                                        color: Color(0xFF00695C),
                                       ),
                                     ),
                                   ],
@@ -555,7 +555,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                               value: _callEnabled,
                               onChanged: _toggleCallEnabled,
                               activeThumbImage: null,
-                              activeTrackColor: Colors.pinkAccent,
+                              activeThumbColor: Color(0xFF00695C),
                             ),
                           ),
 
@@ -595,7 +595,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                               ),
                               value: _appLockEnabled,
                               onChanged: _toggleAppLock,
-                              activeTrackColor: Colors.pinkAccent,
+                              activeThumbColor: Color(0xFF00695C),
                             ),
                           ),
 
@@ -605,7 +605,12 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                             child: ElevatedButton(
                               onPressed: _finishSetup,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.pinkAccent,
+                                backgroundColor: Color.fromARGB(
+                                  255,
+                                  177,
+                                  217,
+                                  255,
+                                ),
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 16,
                                 ),
@@ -619,7 +624,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Colors.black,
                                 ),
                               ),
                             ),

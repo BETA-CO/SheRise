@@ -8,52 +8,67 @@ class FidgetBoardGame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F7), // Apple-like light grey
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
           "Fidget Lab",
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildSectionTitle("Switches"),
-              const SizedBox(height: 20),
-              Wrap(
-                spacing: 20,
-                runSpacing: 20,
-                alignment: WrapAlignment.center,
-                children: [
-                  const _ToggleSwitch(),
-                  const _ToggleSwitch(),
-                  const _ToggleSwitch(),
-                ],
-              ),
-              const SizedBox(height: 40),
-              _buildSectionTitle("Buttons"),
-              const SizedBox(height: 20),
-              Wrap(
-                spacing: 20,
-                runSpacing: 20,
-                alignment: WrapAlignment.center,
-                children: [
-                  const _HapticButton(color: Colors.blueAccent),
-                  const _HapticButton(color: Colors.redAccent),
-                  const _HapticButton(color: Colors.green),
-                ],
-              ),
-              const SizedBox(height: 40),
-              _buildSectionTitle("Slider"),
-              const SizedBox(height: 20),
-              const _HapticSlider(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.fromARGB(255, 234, 245, 255),
+              Color(0xFFF5FAFF),
+              Colors.white,
             ],
+            stops: [0.40, 0.60, 1.0],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildSectionTitle("Switches"),
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 20,
+                  runSpacing: 20,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    const _ToggleSwitch(),
+                    const _ToggleSwitch(),
+                    const _ToggleSwitch(),
+                  ],
+                ),
+                const SizedBox(height: 40),
+                _buildSectionTitle("Buttons"),
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 20,
+                  runSpacing: 20,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    const _HapticButton(color: Color(0xFF00695C)),
+                    const _HapticButton(color: Colors.tealAccent),
+                    const _HapticButton(color: Color(0xFF26A69A)),
+                  ],
+                ),
+                const SizedBox(height: 40),
+                _buildSectionTitle("Slider"),
+                const SizedBox(height: 20),
+                const _HapticSlider(),
+              ],
+            ),
           ),
         ),
       ),
@@ -158,7 +173,9 @@ class _ToggleSwitchState extends State<_ToggleSwitch> {
                     height: 15,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _isOn ? Colors.green : Colors.grey.shade400,
+                      color: _isOn
+                          ? const Color(0xFF00695C)
+                          : Colors.grey.shade400,
                     ),
                   ),
                 ),

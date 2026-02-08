@@ -66,18 +66,19 @@ class _ZenGardenGameState extends State<ZenGardenGame> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0E6D2), // Sand color
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
           "Zen Garden",
           style: TextStyle(
-            color: Color(0xFF5D4037),
+            color: Color(0xFF00695C),
             fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF5D4037)),
+        iconTheme: const IconThemeData(color: Color(0xFF00695C)),
         actions: [
           IconButton(
             icon: const Icon(Icons.waves),
@@ -86,37 +87,42 @@ class _ZenGardenGameState extends State<ZenGardenGame> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          // The Sand Canvas
-          GestureDetector(
-            onPanStart: _onPanStart,
-            onPanUpdate: _onPanUpdate,
-            onPanEnd: _onPanEnd,
-            onPanCancel: _onPanCancel,
-            child: CustomPaint(
-              painter: _SandRakePainter(_paths),
-              size: Size.infinite,
-            ),
-          ),
-          // Tutorial / Hint
-          if (_paths.isEmpty)
-            const Center(
-              child: Text(
-                "Drag to rake the sand",
-                style: TextStyle(
-                  color: Colors.black26,
-                  fontSize: 18,
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w500,
-                ),
+      body: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFFF2FCF9), // Pale Mint Sand
+        ),
+        child: Stack(
+          children: [
+            // The Sand Canvas
+            GestureDetector(
+              onPanStart: _onPanStart,
+              onPanUpdate: _onPanUpdate,
+              onPanEnd: _onPanEnd,
+              onPanCancel: _onPanCancel,
+              child: CustomPaint(
+                painter: _SandRakePainter(_paths),
+                size: Size.infinite,
               ),
             ),
-        ],
+            // Tutorial / Hint
+            if (_paths.isEmpty)
+              const Center(
+                child: Text(
+                  "Drag to rake the sand",
+                  style: TextStyle(
+                    color: Colors.black26,
+                    fontSize: 18,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _resetGarden,
-        backgroundColor: const Color(0xFF8D6E63),
+        backgroundColor: const Color(0xFF00695C),
         child: const Icon(Icons.cleaning_services, color: Colors.white),
       ),
     );
@@ -136,8 +142,8 @@ class _SandRakePainter extends CustomPainter {
     // To simulate a groove: visible shadow (darker sand) inside, slight highlight on edge.
 
     final paintShadow = Paint()
-      ..color = const Color(0xFF8D6E63)
-          .withValues(alpha: 0.3) // Darker sand shadow
+      ..color = const Color(0xFF00695C)
+          .withValues(alpha: 0.2) // Teal shadow
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
@@ -169,7 +175,7 @@ class _SandRakePainter extends CustomPainter {
 
       // Inner line to sharpen the groove bottom
       final paintInner = Paint()
-        ..color = const Color(0xFF5D4037).withValues(alpha: 0.1)
+        ..color = const Color(0xFF00695C).withValues(alpha: 0.1)
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round

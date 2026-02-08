@@ -57,24 +57,29 @@ dependencies:
   scrollable_positioned_list: ^0.3.8
   local_auth: ^3.0.0
   local_auth_platform_interface: ^1.1.0
-  google_fonts: ^7.0.0
+  google_fonts: ^8.0.1
   path: ^1.9.1
   url_launcher: ^6.3.2
   battery_plus: ^7.0.0
   connectivity_plus: ^7.0.0
   cloud_firestore: ^6.1.0
   sensors_plus: ^7.0.0
-  package_info_plus: ^8.0.0
+  package_info_plus: ^9.0.0
   vibration: ^3.1.5
   audioplayers: ^6.0.0
   webview_flutter: ^4.7.0
-  flutter_background_service: ^5.1.0
-  flutter_local_notifications: ^19.5.0
+
+  flutter_local_notifications: ^20.0.0
   dio: ^5.9.0
   video_player: ^2.10.1
   chewie: ^1.13.0
   open_file: ^3.5.11
   flutter_native_splash: ^2.4.7
+  provider: ^6.1.2
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+  flutter_compass: ^0.8.1
+  http: ^1.6.0
 
 
 dev_dependencies:

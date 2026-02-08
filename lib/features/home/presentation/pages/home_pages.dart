@@ -25,7 +25,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   // SOS State
@@ -94,7 +94,11 @@ class _HomePageState extends State<HomePage>
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       body: Stack(
         children: [
@@ -105,8 +109,12 @@ class _HomePageState extends State<HomePage>
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color.fromARGB(255, 234, 245, 255),Color(0xFFF5FAFF), Colors.white],
-                stops: [0.40,0.60, 1.0],
+                colors: [
+                  Color.fromARGB(255, 234, 245, 255),
+                  Color(0xFFF5FAFF),
+                  Colors.white,
+                ],
+                stops: [0.40, 0.60, 1.0],
               ),
             ),
             child: SafeArea(
@@ -131,27 +139,29 @@ class _HomePageState extends State<HomePage>
                       ),
                       child: Row(
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: BlocBuilder<AuthCubit, AuthState>(
-                              builder: (context, state) {
-                                String greeting = "welcome_back".tr();
-                                if (state is Authenticated &&
-                                    state.user.name != null) {
-                                  greeting += "${state.user.name}";
-                                }
-                                return Text(
-                                  greeting,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 24,
-                                    color: Colors.black,
-                                  ),
-                                );
-                              },
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: BlocBuilder<AuthCubit, AuthState>(
+                                builder: (context, state) {
+                                  String greeting = "welcome_back".tr();
+                                  if (state is Authenticated &&
+                                      state.user.name != null) {
+                                    greeting += "${state.user.name}";
+                                  }
+                                  return Text(
+                                    greeting,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 24,
+                                      color: Colors.black,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  );
+                                },
+                              ),
                             ),
                           ),
-                          const Spacer(),
                           Padding(
                             padding: const EdgeInsets.only(right: 8.0),
                             child: GestureDetector(
@@ -478,29 +488,29 @@ class _HomePageState extends State<HomePage>
                                           .startLocationSharingSession([
                                             contact,
                                           ]);
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Live location sharing started (1 hour)',
-                                            ),
+                                      if (!context.mounted) return;
+
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Live location sharing started (1 hour)',
                                           ),
-                                        );
-                                      }
+                                        ),
+                                      );
                                     } else {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Please set emergency contact first',
-                                            ),
+                                      if (!context.mounted) return;
+
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Please set emergency contact first',
                                           ),
-                                        );
-                                      }
+                                        ),
+                                      );
                                     }
                                   },
                                 ),
@@ -624,6 +634,8 @@ class _HomePageState extends State<HomePage>
   Future<void> _executeEmergencyProtocol() async {
     // 1. Stop Siren
     await SafetyService().stopSiren();
+    if (!mounted) return;
+
     setState(() {
       _isSOSActive = false;
       _countdownSeconds = 10;
@@ -638,6 +650,7 @@ class _HomePageState extends State<HomePage>
     final contactNumber = prefs.getString('emergency_contact');
 
     if (contactNumber == null || contactNumber.isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("err_set_contact_first".tr()),
@@ -657,7 +670,9 @@ class _HomePageState extends State<HomePage>
 
     try {
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       String message = "sos_sms_body".tr(
@@ -682,6 +697,7 @@ class _HomePageState extends State<HomePage>
         await FlutterPhoneDirectCaller.callNumber(contactNumber);
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('err_trigger_emergency'.tr(args: [e.toString()])),

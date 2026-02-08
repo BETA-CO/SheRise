@@ -44,12 +44,13 @@ class _BubblePopGameState extends State<BubblePopGame> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEEEEEE), // Light grey/white surface
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
           "Bubble Wrap",
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black87),
@@ -60,33 +61,47 @@ class _BubblePopGameState extends State<BubblePopGame> {
           ),
         ],
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              // Creating the look of the plastic sheet sitting on the surface
-              color: const Color(0xFFF5F5F5).withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-            child: Wrap(
-              spacing: 4, // Tighter spacing for a continuous sheet look
-              runSpacing: 4,
-              children: List.generate(_gridSize, (index) {
-                return GestureDetector(
-                  onTap: () => _popBubble(index),
-                  child: _buildRealisticBubble(_popped[index]),
-                );
-              }),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.fromARGB(255, 234, 245, 255),
+              Color(0xFFF5FAFF),
+              Colors.white,
+            ],
+            stops: [0.40, 0.60, 1.0],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 100, 20, 20),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                // Creating the look of the plastic sheet sitting on the surface
+                color: const Color(0xFFF5F5F5).withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF00695C).withValues(alpha: 0.05),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Wrap(
+                spacing: 4, // Tighter spacing for a continuous sheet look
+                runSpacing: 4,
+                children: List.generate(_gridSize, (index) {
+                  return GestureDetector(
+                    onTap: () => _popBubble(index),
+                    child: _buildRealisticBubble(_popped[index]),
+                  );
+                }),
+              ),
             ),
           ),
         ),

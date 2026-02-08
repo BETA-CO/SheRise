@@ -145,7 +145,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
               const SizedBox(height: 40),
 
-              MyButton(onTap: goToPhoneAuth, text: "btn_next".tr()),
+              MyButton(onTap: goToPhoneAuth, text: "N E X T"),
             ],
           ),
         ),

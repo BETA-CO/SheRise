@@ -13,7 +13,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   bool _expanded = false;
   bool _callEnabled = true;
   late AnimationController _fadeController;
@@ -200,7 +200,11 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -212,7 +216,12 @@ class _SettingsPageState extends State<SettingsPage>
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color.fromARGB(255, 255, 236, 242), Colors.white],
+              colors: [
+                Color.fromARGB(255, 234, 245, 255),
+                Color(0xFFF5FAFF),
+                Colors.white,
+              ],
+              stops: [0.40, 0.60, 1.0],
             ),
           ),
           child: SafeArea(
@@ -390,14 +399,12 @@ class _SettingsPageState extends State<SettingsPage>
                                       Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: Colors.pinkAccent.withValues(
-                                            alpha: 0.1,
-                                          ),
+                                          color: const Color(0xFFF2FCF9),
                                           shape: BoxShape.circle,
                                         ),
                                         child: const Icon(
                                           Icons.add,
-                                          color: Colors.pinkAccent,
+                                          color: Color(0xFF00695C),
                                         ),
                                       ),
                                       const SizedBox(width: 12),
@@ -405,7 +412,6 @@ class _SettingsPageState extends State<SettingsPage>
                                         "add_contact_btn".tr(),
                                         style: TextStyle(
                                           fontSize: 16,
-                                          color: Colors.pinkAccent,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -490,7 +496,7 @@ class _SettingsPageState extends State<SettingsPage>
                               ),
                               value: _callEnabled,
                               onChanged: _toggleCallEnabled,
-                              activeThumbColor: Colors.pinkAccent,
+                              activeThumbColor: Color(0xFF00695C),
                             ),
                           ),
                           Padding(
@@ -537,7 +543,7 @@ class _SettingsPageState extends State<SettingsPage>
                                   ),
                                   value: _appLockEnabled,
                                   onChanged: _toggleAppLock,
-                                  activeThumbColor: Colors.pinkAccent,
+                                  activeThumbColor: Color(0xFF00695C),
                                 ),
                                 if (_appLockEnabled) ...[
                                   const Divider(),
@@ -691,6 +697,7 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Future<void> _changeLanguage(Locale locale) async {
+    if (!mounted) return;
     context.setLocale(locale);
     _closeDropdown();
   }
@@ -785,6 +792,7 @@ class _SettingsPageState extends State<SettingsPage>
     );
 
     if (confirmed == true) {
+      if (!mounted) return;
       if (context.locale == locale) {
         // Switch to English first
         await context.setLocale(const Locale('en'));

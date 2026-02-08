@@ -32,7 +32,7 @@ class _FeatureShowcasePageState extends State<FeatureShowcasePage> {
       'description':
           'Get 24/7 guidance on safety, legal rights, and emotional support from our intelligent assistant.',
       'icon': Icons.auto_awesome,
-      'color': Color(0xFFFF4081),
+      'color': Color(0xFF00695C),
     },
     {
       'title': 'Secure App Lock',
@@ -65,7 +65,12 @@ class _FeatureShowcasePageState extends State<FeatureShowcasePage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFF0F5), Colors.white],
+            colors: [
+              Color.fromARGB(255, 234, 245, 255),
+              Color(0xFFF5FAFF),
+              Colors.white,
+            ],
+            stops: [0.40, 0.60, 1.0],
           ),
         ),
         child: SafeArea(
@@ -103,7 +108,7 @@ class _FeatureShowcasePageState extends State<FeatureShowcasePage> {
                           width: _currentPage == index ? 24 : 8,
                           decoration: BoxDecoration(
                             color: _currentPage == index
-                                ? const Color(0xFFFF8BA7)
+                                ? const Color.fromARGB(255, 177, 217, 255)
                                 : Colors.grey.shade300,
                             borderRadius: BorderRadius.circular(4),
                           ),
@@ -124,8 +129,8 @@ class _FeatureShowcasePageState extends State<FeatureShowcasePage> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF8BA7),
-                        foregroundColor: Colors.white,
+                        backgroundColor: const Color.fromARGB(255, 177, 217, 255),
+                        foregroundColor: Colors.black,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),

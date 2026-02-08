@@ -36,7 +36,7 @@ class _CaptchaPageState extends State<CaptchaPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.security, size: 80, color: Colors.pinkAccent),
+              const Icon(Icons.security, size: 80, color: Color.fromARGB(255, 124, 192, 255)),
               const SizedBox(height: 20),
               Text(
                 "captcha_title".tr(),
@@ -79,10 +79,10 @@ class _CaptchaPageState extends State<CaptchaPage> {
                   ),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: Colors.pinkAccent,
+                      activeTrackColor: const Color.fromARGB(255, 124, 192, 255),
                       inactiveTrackColor: Colors.transparent,
-                      thumbColor: Colors.pink,
-                      overlayColor: Colors.pink.withValues(alpha: 0.2),
+                      thumbColor: const Color.fromARGB(255, 124, 192, 255),
+                      overlayColor: const Color.fromARGB(255, 124, 192, 255).withValues(alpha: 0.2),
                     ),
                     child: Slider(
                       value: _sliderValue,
@@ -99,25 +99,28 @@ class _CaptchaPageState extends State<CaptchaPage> {
                           Future.delayed(
                             const Duration(milliseconds: 500),
                             () async {
-                              if (mounted) {
-                                // Save user details locally
-                                await context.read<AuthCubit>().saveUserDetails(
-                                  name: widget.name,
-                                  surname: widget.surname,
-                                  dob: widget.dob,
-                                  profilePicPath:
-                                      "", // Empty initially, set in SetupPage
-                                );
-                                if (mounted) {
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const SetupPage(),
-                                    ),
-                                    (route) => false,
-                                  );
-                                }
-                              }
+                              if (!mounted) return;
+
+                              final authCubit = context.read<AuthCubit>();
+
+                              // Save user details locally
+                              await authCubit.saveUserDetails(
+                                name: widget.name,
+                                surname: widget.surname,
+                                dob: widget.dob,
+                                profilePicPath:
+                                    "", // Empty initially, set in SetupPage
+                              );
+
+                              if (!mounted) return;
+
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const SetupPage(),
+                                ),
+                                (route) => false,
+                              );
                             },
                           );
                         } else {
