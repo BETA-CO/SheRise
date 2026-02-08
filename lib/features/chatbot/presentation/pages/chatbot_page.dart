@@ -301,7 +301,12 @@ class _ChatBotPageState extends State<ChatBotPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFF5F7), Colors.white],
+            colors: [
+              Color.fromARGB(255, 234, 245, 255),
+              Color(0xFFF5FAFF),
+              Colors.white,
+            ],
+            stops: [0.40, 0.60, 1.0],
           ),
         ),
         child: SafeArea(
@@ -488,7 +493,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
                                     _handleMessageLongPress(message),
                                 child: Container(
                                   color: isSelected
-                                      ? Colors.pinkAccent.withOpacity(0.1)
+                                      ? const Color.fromARGB(255, 0, 0, 0).withOpacity(0.1)
                                       : Colors.transparent,
                                   child: _MessageBubble(message: message),
                                 ),
@@ -506,7 +511,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
                           onPressed: _scrollToBottom,
                           child: const Icon(
                             Icons.arrow_downward,
-                            color: Colors.pinkAccent,
+                           color: Color(0xFF00695C),
                           ),
                         ),
                       ),
@@ -556,7 +561,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
                           ),
                           const SizedBox(width: 8),
                           CircleAvatar(
-                            backgroundColor: Colors.pinkAccent,
+                            backgroundColor: Color(0xFF00695C),
                             child: IconButton(
                               icon: const Icon(Icons.send, color: Colors.white),
                               onPressed: _sendMessage,
@@ -623,7 +628,7 @@ class _MessageBubble extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: message.isUser ? Colors.pinkAccent : Colors.white,
+                color: message.isUser ? Colors.white : Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -642,12 +647,12 @@ class _MessageBubble extends StatelessWidget {
               child: message.isUser
                   ? Text(
                       message.text,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.black),
                     )
                   : MarkdownBody(
                       data: message.text,
                       styleSheet: MarkdownStyleSheet(
-                        p: const TextStyle(color: Colors.black87),
+                        p: const TextStyle(color: Colors.black),
                       ),
                     ),
             ),
@@ -656,7 +661,7 @@ class _MessageBubble extends StatelessWidget {
             const SizedBox(width: 8),
             const CircleAvatar(
               radius: 16,
-              backgroundColor: Colors.pinkAccent,
+              backgroundColor: Color(0xFF00695C),
               child: Icon(Icons.person, color: Colors.white, size: 20),
             ),
           ],

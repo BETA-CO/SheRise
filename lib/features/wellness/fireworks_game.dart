@@ -65,12 +65,13 @@ class _FireworksGameState extends State<FireworksGame>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Inked paper look
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
           "Ink Bursts",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
@@ -85,13 +86,27 @@ class _FireworksGameState extends State<FireworksGame>
           ),
         ],
       ),
-      body: GestureDetector(
-        onTapUp: _launchFirework,
-        child: Container(
-          color: Colors.white,
-          width: double.infinity,
-          height: double.infinity,
-          child: CustomPaint(painter: _FireworkPainter(_fireworks)),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.fromARGB(255, 234, 245, 255),
+              Color(0xFFF5FAFF),
+              Colors.white,
+            ],
+            stops: [0.40, 0.60, 1.0],
+          ),
+        ),
+        child: GestureDetector(
+          onTapUp: _launchFirework,
+          child: Container(
+            color: Colors.transparent,
+            width: double.infinity,
+            height: double.infinity,
+            child: CustomPaint(painter: _FireworkPainter(_fireworks)),
+          ),
         ),
       ),
     );

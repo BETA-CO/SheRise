@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:telephony/telephony.dart';
-import 'package:vibration/vibration.dart';
 import 'package:geolocator/geolocator.dart';
 // import 'package:sherise/features/safety/shake_detector.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,7 +18,6 @@ class SafetyService {
 
   final Telephony _telephony = Telephony.instance;
   final AudioPlayer _audioPlayer = AudioPlayer();
-  bool _ispanicModeActive = false;
 
   void dispose() {
     _audioPlayer.dispose();
@@ -47,14 +45,6 @@ class SafetyService {
   }
 
   // --- Internal Logic ---
-
-  // --- Internal Logic ---
-
-  Future<void> _stopPanicMode() async {
-    _ispanicModeActive = false;
-    await stopSiren();
-    Vibration.cancel();
-  }
 
   Future<void> _sendEmergencySMS() async {
     // Check permissions

@@ -46,6 +46,31 @@ class _MainPageState extends State<MainPage> {
     _pageController.jumpToPage(index);
   }
 
+  // ✅ handle swipe on navbar itself
+  void _onHorizontalSwipe(DragEndDetails details) {
+    if (details.primaryVelocity == null) return;
+
+    if (details.primaryVelocity! < 0) {
+      // Swipe left → go next
+      if (_selectedIndex < _pages.length - 1) {
+        _pageController.animateToPage(
+          _selectedIndex + 1,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    } else if (details.primaryVelocity! > 0) {
+      // Swipe right → go previous
+      if (_selectedIndex > 0) {
+        _pageController.animateToPage(
+          _selectedIndex - 1,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,16 +94,19 @@ class _MainPageState extends State<MainPage> {
           controller: _pageController,
           allowImplicitScrolling:
               true, // Smooth swipe by pre-rendering adjacent tabs
-          physics: const NeverScrollableScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           onPageChanged: _onPageChanged,
           children: _pages,
         ),
       ),
-      bottomNavigationBar: Container(
-        color: Colors.transparent,
-        child: MyNavbar(
-          selectedIndex: _selectedIndex,
-          onTabChange: _onNavBarTap,
+      bottomNavigationBar: GestureDetector(
+        onHorizontalDragEnd: _onHorizontalSwipe,
+        child: Container(
+          color: Colors.transparent,
+          child: MyNavbar(
+            selectedIndex: _selectedIndex,
+            onTabChange: _onNavBarTap,
+          ),
         ),
       ),
     );

@@ -16,7 +16,8 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage>
+    with AutomaticKeepAliveClientMixin {
   File? _profileImage;
 
   @override
@@ -54,7 +55,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -63,7 +68,12 @@ class _ProfilePageState extends State<ProfilePage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color.fromARGB(255, 255, 236, 242), Colors.white],
+            colors: [
+              Color.fromARGB(255, 234, 245, 255),
+              Color(0xFFF5FAFF),
+              Colors.white,
+            ],
+            stops: [0.40, 0.60, 1.0],
           ),
         ),
         child: SafeArea(
@@ -171,13 +181,14 @@ class _ProfilePageState extends State<ProfilePage> {
                   borderRadius: BorderRadius.circular(50),
                   child: Container(
                     padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFF8BA7),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black, width: 0.1),
+                      color: const Color(0xFFF2FCF9),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.edit,
-                      color: Colors.white,
+                      color: Color(0xFF00695C),
                       size: 20,
                     ),
                   ),

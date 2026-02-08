@@ -75,7 +75,12 @@ class _LandingPageState extends State<LandingPage>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFEBF0), Colors.white],
+            colors: [
+              Color.fromARGB(255, 234, 245, 255),
+              Color(0xFFF5FAFF),
+              Colors.white,
+            ],
+            stops: [0.40, 0.60, 1.0],
           ),
         ),
         child: SafeArea(
@@ -99,16 +104,7 @@ class _LandingPageState extends State<LandingPage>
                         Container(
                           height: 180,
                           width: 180,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.pink.withValues(alpha: 0.2),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
+                          decoration: BoxDecoration(shape: BoxShape.circle),
                           child: ClipOval(
                             child: Image.asset(
                               'lib/assets/home page logo.png',
@@ -158,9 +154,8 @@ class _LandingPageState extends State<LandingPage>
                         text: 'Slide to Start',
                         onSlideCompleted: _navigateToFeatures,
                         outerColor: Colors.white,
-                        innerColor: const Color(0xFFFF8BA7),
+                        innerColor: const Color.fromARGB(242, 0, 185, 164),
                         textStyle: const TextStyle(
-                          color: Color(0xFFFF8BA7),
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),

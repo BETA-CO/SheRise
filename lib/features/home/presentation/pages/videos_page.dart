@@ -9,16 +9,26 @@ class VideosPage extends StatefulWidget {
   State<VideosPage> createState() => _VideosPageState();
 }
 
-class _VideosPageState extends State<VideosPage> {
+class _VideosPageState extends State<VideosPage>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color.fromARGB(255, 255, 236, 242), Colors.white],
+            colors: [
+              Color.fromARGB(255, 234, 245, 255),
+              Color(0xFFF5FAFF),
+              Colors.white,
+            ],
+            stops: [0.40, 0.60, 1.0],
           ),
         ),
         child: SafeArea(
