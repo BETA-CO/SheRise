@@ -68,7 +68,6 @@ dependencies:
   vibration: ^3.1.5
   audioplayers: ^6.0.0
   webview_flutter: ^4.7.0
-
   flutter_local_notifications: ^20.0.0
   dio: ^5.9.0
   video_player: ^2.10.1
@@ -80,6 +79,7 @@ dependencies:
   latlong2: ^0.9.1
   flutter_compass: ^0.8.1
   http: ^1.6.0
+  flutter_dotenv: ^6.0.0
 
 
 dev_dependencies:
@@ -111,6 +111,7 @@ flutter:
       - lib/assets/lang/
       - lib/assets/sounds/
       - lib/assets/video cards/
+      - .env
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

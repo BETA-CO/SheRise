@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sherise/core/utils/smooth_scroll_behavior.dart';
 import 'package:sherise/core/localization/file_asset_loader.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Background Callback for Home Widget
 @pragma('vm:entry-point')
@@ -29,6 +30,7 @@ void main() async {
 
   // Parallelize independent initializations to reduce startup time
   await Future.wait([
+    dotenv.load(fileName: ".env"), // Load env vars
     EasyLocalization.ensureInitialized(),
     HomeWidget.registerInteractivityCallback(backgroundCallback),
     // Preload shared preferences concurrently
