@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:sherise/features/auth/presentation/components/app_lock_wrapper.dart';
+
 import 'package:sherise/features/auth/presentation/components/loading.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_states.dart';
@@ -14,32 +14,30 @@ class AuthFlowWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppLockWrapper(
-      child: BlocConsumer<AuthCubit, AuthState>(
-        builder: (context, state) {
-          if (state is Unauthenticated) {
+    return BlocConsumer<AuthCubit, AuthState>(
+      builder: (context, state) {
+        if (state is Unauthenticated) {
+          FlutterNativeSplash.remove();
+          return const AuthPage();
+        }
+        if (state is Authenticated) {
+          if (state.user.isNewUser) {
             FlutterNativeSplash.remove();
-            return const AuthPage();
+            return const SetupPage();
           }
-          if (state is Authenticated) {
-            if (state.user.isNewUser) {
-              FlutterNativeSplash.remove();
-              return const SetupPage();
-            }
-            FlutterNativeSplash.remove();
-            return const MainPage();
-          } else {
-            return const LoadingScreen();
-          }
-        },
-        listener: (context, state) {
-          if (state is AuthError) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.message)));
-          }
-        },
-      ),
+          FlutterNativeSplash.remove();
+          return const MainPage();
+        } else {
+          return const LoadingScreen();
+        }
+      },
+      listener: (context, state) {
+        if (state is AuthError) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
+        }
+      },
     );
   }
 }

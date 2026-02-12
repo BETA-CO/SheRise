@@ -7,6 +7,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_states.dart';
+import 'package:sherise/features/auth/domain/entities/app_user.dart';
+import 'package:sherise/features/home/presentation/pages/settings_page.dart';
+import 'package:sherise/features/home/presentation/pages/edit_profile_page.dart';
 import 'package:sherise/features/onboarding/presentation/pages/landing_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -123,11 +126,8 @@ class _ProfilePageState extends State<ProfilePage>
                         behavior: const _BouncyScrollBehavior(),
                         child: _buildProfileContent(
                           context,
-                          userName,
-                          userAge,
-                          userDob,
+                          user,
                           formattedDate,
-                          user.profilePicPath,
                         ),
                       );
                     } else if (state is Unauthenticated) {
@@ -147,70 +147,53 @@ class _ProfilePageState extends State<ProfilePage>
 
   Widget _buildProfileContent(
     BuildContext context,
-    String name,
-    String age,
-    String dob,
+    AppUser user,
     String memberSince,
-    String? profilePicPath,
   ) {
+    final surname = user.surname ?? "";
+    final userName = user.name != null ? "${user.name!} $surname".trim() : "User";
+    final userAge = user.age ?? "N/A";
+    final userDob =
+        user.dob != null ? DateFormat('dd MMM yyyy').format(user.dob!) : "N/A";
+    final profilePicPath = user.profilePicPath;
+
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              CircleAvatar(
-                radius: 60,
-                backgroundColor: Colors.pink.shade100,
-                backgroundImage:
-                    (profilePicPath != null &&
+          CircleAvatar(
+            radius: 60,
+            backgroundColor: Colors.pink.shade100,
+            backgroundImage:
+                (profilePicPath != null &&
                         File(profilePicPath).existsSync())
                     ? FileImage(File(profilePicPath))
                     : (_profileImage != null
-                          ? FileImage(_profileImage!)
-                          : const AssetImage('lib/assets/home page logo.png')
-                                as ImageProvider),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: InkWell(
-                  onTap: _pickImage,
-                  borderRadius: BorderRadius.circular(50),
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black, width: 0.1),
-                      color: const Color(0xFFF2FCF9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.edit,
-                      color: Color(0xFF00695C),
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+                        ? FileImage(_profileImage!)
+                        : const AssetImage('lib/assets/home page logo.png')
+                            as ImageProvider),
           ),
           const SizedBox(height: 25),
-          Text(
-            'hello_user'.tr(args: [name]),
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              'hello_user'.tr(args: [userName]),
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 15),
           const Divider(color: Colors.black26),
           const SizedBox(height: 15),
-          _buildInfoRow(Icons.cake_outlined, 'label_age'.tr(), age),
+          _buildInfoRow(Icons.cake_outlined, 'label_age'.tr(), userAge),
           const SizedBox(height: 15),
-          _buildInfoRow(Icons.calendar_month_outlined, 'label_dob'.tr(), dob),
+          _buildInfoRow(Icons.calendar_month_outlined, 'label_dob'.tr(), userDob),
           const SizedBox(height: 15),
           _buildInfoRow(
             Icons.calendar_today_outlined,
@@ -218,10 +201,36 @@ class _ProfilePageState extends State<ProfilePage>
             memberSince,
           ),
           const SizedBox(height: 15),
-          _buildInfoRow(
-            Icons.settings_outlined,
-            'account_settings'.tr(),
-            'manage_preferences'.tr(),
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsPage(isSetup: true),
+                ),
+              );
+            },
+            child: _buildInfoRow(
+              Icons.settings_outlined,
+              'account_settings'.tr(),
+              'manage_preferences'.tr(),
+            ),
+          ),
+          const SizedBox(height: 15),
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditProfilePage(user: user),
+                ),
+              );
+            },
+            child: _buildInfoRow(
+              Icons.edit_outlined,
+              'edit_profile'.tr(),
+              'Update your details', // You might want to add a tr() key for this later
+            ),
           ),
           const SizedBox(height: 30),
           const Divider(color: Colors.black26),
@@ -233,24 +242,30 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String title, String subtitle) {
+  Widget _buildInfoRow(
+    IconData icon,
+    String title,
+    String subtitle,
+  ) {
     return Row(
       children: [
         Icon(icon, color: Colors.black54, size: 24),
         const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: const TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+            ],
+          ),
         ),
       ],
     );

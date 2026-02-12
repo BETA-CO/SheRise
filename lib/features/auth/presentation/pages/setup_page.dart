@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
-import 'package:sherise/features/auth/presentation/pages/pin_lock_screen.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,7 +24,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
   final TextEditingController _phoneController = TextEditingController();
   final FlutterNativeContactPicker _contactPicker =
       FlutterNativeContactPicker();
-  bool _appLockEnabled = false;
+
 
   // Profile Picture State
   File? _profileImage;
@@ -49,7 +49,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
     if (mounted) {
       setState(() {
         _callEnabled = prefs.getBool('emergency_call_enabled') ?? true;
-        _appLockEnabled = prefs.getBool('app_lock_enabled') ?? false;
+
         final contact = prefs.getString('emergency_contact');
         if (contact != null) {
           _phoneController.text = contact;
@@ -104,46 +104,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
     });
   }
 
-  Future<void> _toggleAppLock(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (value) {
-      // Check if PIN is set
-      final pin = prefs.getString('app_pin');
-      if (pin == null) {
-        if (!mounted) return;
-        // Navigate to PIN setup
-        final result = await Navigator.push<bool>(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const PinLockScreen(isSetup: true),
-          ),
-        );
 
-        if (result == true) {
-          await prefs.setBool('app_lock_enabled', true);
-          if (mounted) {
-            setState(() {
-              _appLockEnabled = true;
-            });
-          }
-        }
-      } else {
-        await prefs.setBool('app_lock_enabled', true);
-        if (mounted) {
-          setState(() {
-            _appLockEnabled = true;
-          });
-        }
-      }
-    } else {
-      await prefs.setBool('app_lock_enabled', false);
-      if (mounted) {
-        setState(() {
-          _appLockEnabled = false;
-        });
-      }
-    }
-  }
 
   Future<void> _pickContact() async {
     try {
@@ -560,44 +521,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                           ),
 
                           const SizedBox(height: 24),
-                          _buildSectionTitle('security_section'.tr()),
-                          const SizedBox(height: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: SwitchListTile(
-                              title: Text(
-                                'app_lock'.tr(),
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              subtitle: Text(
-                                'app_lock_desc'.tr(),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              value: _appLockEnabled,
-                              onChanged: _toggleAppLock,
-                              activeThumbColor: Color(0xFF00695C),
-                            ),
-                          ),
+
 
                           const SizedBox(height: 40),
                           SizedBox(

@@ -3,7 +3,7 @@ import 'package:sherise/features/auth/presentation/components/my_navbar.dart';
 import 'package:sherise/features/home/presentation/pages/home_pages.dart';
 import 'package:sherise/features/home/presentation/pages/videos_page.dart';
 import 'package:sherise/features/home/presentation/pages/profile_page.dart';
-import 'package:sherise/features/home/presentation/pages/settings_page.dart';
+import 'package:sherise/features/chatbot/presentation/pages/chatbot_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -14,13 +14,14 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
+  Key _navBarKey = UniqueKey();
   late PageController _pageController;
 
-  final List<Widget> _pages = const [
+  List<Widget> get _pages => const [
     HomePage(),
     VideosPage(),
     ProfilePage(),
-    SettingsPage(),
+    ChatBotPage(),
   ];
 
   @override
@@ -42,6 +43,18 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _onNavBarTap(int index) {
+    if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ChatBotPage()),
+      ).then((_) {
+        // Force update to reset navbar state if it got stuck
+        setState(() {
+          _navBarKey = UniqueKey();
+        });
+      });
+      return;
+    }
     // Jump instantly (no slide animation)
     _pageController.jumpToPage(index);
   }
@@ -77,6 +90,7 @@ class _MainPageState extends State<MainPage> {
       bottomNavigationBar: Container(
         color: Colors.transparent,
         child: MyNavbar(
+          key: _navBarKey,
           selectedIndex: _selectedIndex,
           onTabChange: _onNavBarTap,
         ),
