@@ -40,7 +40,7 @@ class MyNavbar extends StatelessWidget {
               GButton(icon: Icons.home, text: 'Home'),
               GButton(icon: Icons.video_library, text: 'Video'),
               GButton(icon: Icons.person, text: 'Profile'),
-              GButton(icon: Icons.settings, text: 'Settings'),
+              GButton(icon: Icons.auto_awesome, text: 'AI'),
             ],
           ),
         ),

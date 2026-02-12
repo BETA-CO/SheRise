@@ -3,7 +3,7 @@ import 'package:sherise/features/auth/presentation/components/my_navbar.dart';
 import 'package:sherise/features/home/presentation/pages/home_pages.dart';
 import 'package:sherise/features/home/presentation/pages/videos_page.dart';
 import 'package:sherise/features/home/presentation/pages/profile_page.dart';
-import 'package:sherise/features/home/presentation/pages/settings_page.dart';
+import 'package:sherise/features/chatbot/presentation/pages/chatbot_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -20,7 +20,7 @@ class _MainPageState extends State<MainPage> {
     HomePage(),
     VideosPage(),
     ProfilePage(),
-    SettingsPage(),
+    ChatBotPage(),
   ];
 
   @override

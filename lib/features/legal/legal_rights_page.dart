@@ -6,14 +6,24 @@ class LegalRightsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> rights = [
+    final List<Map<String, String>> rights = 
+    [
       {
         "title": "right_zero_fir".tr(),
         "description": "right_desc_zero_fir".tr(),
       },
-      {"title": "right_privacy".tr(), "description": "right_desc_privacy".tr()},
-      {"title": "right_sunset".tr(), "description": "right_desc_sunset".tr()},
-      {"title": "right_digital".tr(), "description": "right_desc_digital".tr()},
+      {
+        "title": "right_privacy".tr(),
+        "description": "right_desc_privacy".tr(),
+      },
+      {
+        "title": "right_sunset".tr(),
+        "description": "right_desc_sunset".tr(),
+      },
+      {
+        "title": "right_digital".tr(),
+        "description": "right_desc_digital".tr(),
+      },
       {
         "title": "right_domestic".tr(),
         "description": "right_desc_domestic".tr(),

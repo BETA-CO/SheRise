@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
-import 'package:sherise/features/auth/presentation/pages/pin_lock_screen.dart';
+
 import 'package:sherise/core/services/localization_service.dart';
 
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key});
+  final bool isSetup;
+  const SettingsPage({super.key, this.isSetup = false});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -83,15 +84,7 @@ class _SettingsPageState extends State<SettingsPage>
     }
 
     final callEnabled = prefs.getBool('emergency_call_enabled') ?? true;
-    final appLockEnabled = prefs.getBool('app_lock_enabled') ?? false;
-
-    if (mounted) {
-      setState(() {
-        _emergencyContacts = contacts;
         _callEnabled = callEnabled;
-        _appLockEnabled = appLockEnabled;
-      });
-    }
   }
 
   Future<void> _addEmergencyContact(String number) async {
@@ -131,53 +124,7 @@ class _SettingsPageState extends State<SettingsPage>
     });
   }
 
-  bool _appLockEnabled = false;
 
-  Future<void> _toggleAppLock(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (value) {
-      // Check if PIN is set
-      final pin = prefs.getString('app_pin');
-      if (pin == null) {
-        // Navigate to PIN setup
-        if (!mounted) return;
-        final result = await Navigator.push<bool>(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const PinLockScreen(isSetup: true),
-          ),
-        );
-
-        if (result == true) {
-          await prefs.setBool('app_lock_enabled', true);
-          if (mounted) {
-            setState(() {
-              _appLockEnabled = true;
-            });
-          }
-        }
-      } else {
-        await prefs.setBool('app_lock_enabled', true);
-        setState(() {
-          _appLockEnabled = true;
-        });
-      }
-    } else {
-      await prefs.setBool('app_lock_enabled', false);
-      setState(() {
-        _appLockEnabled = false;
-      });
-    }
-  }
-
-  Future<void> _changePin() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const PinLockScreen(isSetup: true),
-      ),
-    );
-  }
 
   void _toggleDropdown() {
     setState(() {
@@ -234,8 +181,13 @@ class _SettingsPageState extends State<SettingsPage>
                   ),
                   child: Row(
                     children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.black),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      const SizedBox(width: 8),
                       Text(
-                        'settings'.tr(),
+                        'set tings'.tr(),
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           color: Colors.black,
@@ -499,72 +451,8 @@ class _SettingsPageState extends State<SettingsPage>
                               activeThumbColor: Color(0xFF00695C),
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            child: Divider(
-                              color: Colors.grey.withValues(alpha: 0.25),
-                              thickness: 0.7,
-                            ),
-                          ),
-                          _buildSectionTitle('security_section'.tr()),
-                          const SizedBox(height: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                SwitchListTile(
-                                  title: Text(
-                                    'app_lock'.tr(),
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    'app_lock_desc'.tr(),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  value: _appLockEnabled,
-                                  onChanged: _toggleAppLock,
-                                  activeThumbColor: Color(0xFF00695C),
-                                ),
-                                if (_appLockEnabled) ...[
-                                  const Divider(),
-                                  ListTile(
-                                    title: Text(
-                                      'change_pin'.tr(),
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    trailing: const Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 16,
-                                    ),
-                                    onTap: _changePin,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
+
+
                         ],
                       ),
                     ),

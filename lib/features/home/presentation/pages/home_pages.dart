@@ -5,7 +5,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_states.dart';
-import 'package:sherise/features/chatbot/presentation/pages/chatbot_page.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -147,10 +146,11 @@ class _HomePageState extends State<HomePage>
                                   String greeting = "welcome_back".tr();
                                   if (state is Authenticated &&
                                       state.user.name != null) {
-                                    greeting += "${state.user.name}";
+                                    greeting += ", ${state.user.name}!";
                                   }
                                   return Text(
                                     greeting,
+                                    textAlign: TextAlign.center,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 24,
@@ -159,61 +159,6 @@ class _HomePageState extends State<HomePage>
                                     overflow: TextOverflow.ellipsis,
                                   );
                                 },
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const ChatBotPage(),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF2FCF9),
-                                  borderRadius: BorderRadius.circular(30),
-                                  border: Border.all(
-                                    color: Colors.black,
-                                    width: 0.2,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(
-                                        0xFF00695C,
-                                      ).withOpacity(0.1),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      "AI",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    const Icon(
-                                      Icons.auto_awesome,
-                                      color: Color(0xFF00695C),
-                                      size: 20,
-                                    ),
-                                  ],
-                                ),
                               ),
                             ),
                           ),

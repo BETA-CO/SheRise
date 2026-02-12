@@ -152,56 +152,66 @@ class _PinLockScreenState extends State<PinLockScreen> {
             )
           : null,
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 40),
-            const Icon(Icons.lock_outline, size: 60, color: Colors.pinkAccent),
-            const SizedBox(height: 20),
-            Text(
-              _message,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 40),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(4, (index) => _buildPinDot(index)),
-            ),
-            const SizedBox(height: 60),
-            // Keypad
-            for (var i = 0; i < 3; i++)
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 40),
+              const Icon(Icons.lock_outline, size: 60, color: Colors.pinkAccent),
+              const SizedBox(height: 20),
+              Text(
+                _message,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 40),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(4, (index) => _buildPinDot(index)),
+              ),
+              const SizedBox(height: 60),
+              // Keypad
+              for (var i = 0; i < 3; i++)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      for (var j = 1; j <= 3; j++) _buildKey("${i * 3 + j}"),
+                    ],
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    for (var j = 1; j <= 3; j++) _buildKey("${i * 3 + j}"),
+                    Expanded(
+                      child: Center(
+                        child: !widget.isSetup
+                            ? IconButton(
+                                onPressed: _triggerBiometric,
+                                icon: const Icon(Icons.fingerprint, size: 40),
+                                color: Colors.pinkAccent,
+                              )
+                            : const SizedBox(),
+                      ),
+                    ),
+                    _buildKey("0"),
+                    Expanded(
+                      child: Center(
+                        child: IconButton(
+                          onPressed: _onDelete,
+                          icon: const Icon(Icons.backspace_outlined),
+                          iconSize: 30,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  if (!widget.isSetup)
-                    IconButton(
-                      onPressed: _triggerBiometric,
-                      icon: const Icon(Icons.fingerprint, size: 40),
-                      color: Colors.pinkAccent,
-                    )
-                  else
-                    const SizedBox(width: 80),
-                  _buildKey("0"),
-                  IconButton(
-                    onPressed: _onDelete,
-                    icon: const Icon(Icons.backspace_outlined),
-                    iconSize: 30,
-                  ),
-                ],
-              ),
-            ),
-          ],
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
