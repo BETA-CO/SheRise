@@ -187,7 +187,7 @@ class _SettingsPageState extends State<SettingsPage>
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'set tings'.tr(),
+                        'settings'.tr(),
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           color: Colors.black,
