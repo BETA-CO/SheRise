@@ -11,9 +11,13 @@
     <!-- Android 14+ requirement -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- Android 14+ requirement -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
 
     <application
-        android:label="sherise"
+        android:label="SheRise"
         android:name=".MainApplication"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -73,6 +77,11 @@
         
 
 
+    <service
+        android:name="id.flutter.flutter_background_service.BackgroundService"
+        android:foregroundServiceType="microphone"
+        android:exported="true"
+    />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
