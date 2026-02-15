@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 
 import 'package:sherise/core/services/localization_service.dart';
-import 'package:sherise/main.dart';
 
 class SettingsPage extends StatefulWidget {
   final bool isSetup;
@@ -71,21 +70,26 @@ class _SettingsPageState extends State<SettingsPage>
   Future<void> _loadEmergencyContact() async {
     final prefs = await SharedPreferences.getInstance();
     // Load list
-    final contacts = prefs.getStringList('emergency_contacts_list') ?? [];
+    var contacts = prefs.getStringList('emergency_contacts_list') ?? [];
     // Load legacy single contact for migration
     final singleContact = prefs.getString('emergency_contact');
 
     if (singleContact != null &&
         singleContact.isNotEmpty &&
         !contacts.contains(singleContact)) {
-      contacts.add(singleContact);
+      // Create a new list to ensure it's modifiable
+      contacts = List.from(contacts)..add(singleContact);
       await prefs.setStringList('emergency_contacts_list', contacts);
-      // Optional: Clear legacy key
-      // await prefs.remove('emergency_contact');
     }
 
     final callEnabled = prefs.getBool('emergency_call_enabled') ?? true;
-    _callEnabled = callEnabled;
+
+    if (mounted) {
+      setState(() {
+        _emergencyContacts = List.from(contacts);
+        _callEnabled = callEnabled;
+      });
+    }
   }
 
   Future<void> _addEmergencyContact(String number) async {
@@ -312,6 +316,17 @@ class _SettingsPageState extends State<SettingsPage>
                                     ],
                                   ),
                                 ),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0, left: 4.0),
+                            child: Text(
+                              "restart_warning".tr(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                                fontStyle: FontStyle.italic,
                               ),
                             ),
                           ),
@@ -622,7 +637,8 @@ class _SettingsPageState extends State<SettingsPage>
       await context.setLocale(locale);
 
       if (mounted) {
-        _showRestartDialog();
+        // We don't force restart anymore, just let the user know via static text
+        if (mounted) setState(() {});
       }
     } catch (e) {
       if (mounted) {
@@ -640,25 +656,6 @@ class _SettingsPageState extends State<SettingsPage>
         });
       }
     }
-  }
-
-  void _showRestartDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Text('restart_required'.tr()),
-        content: Text('restart_content'.tr()),
-        actions: [
-          TextButton(
-            onPressed: () {
-              RestartWidget.restartApp(context);
-            },
-            child: Text('restart_now'.tr()),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _makePermanent(Locale locale) async {

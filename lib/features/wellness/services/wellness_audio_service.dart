@@ -12,10 +12,24 @@ class WellnessAudioService {
     return _instance;
   }
 
-  WellnessAudioService._internal();
+  WellnessAudioService._internal() {
+    // Initialize a pool of players for SFX
+    for (int i = 0; i < _poolSize; i++) {
+      final player = AudioPlayer();
+      player.setReleaseMode(ReleaseMode.stop);
+      // Removed lowLatency mode as it causes issues on some devices
+      _pool.add(player);
+    }
+  }
 
-  final AudioPlayer _player = AudioPlayer();
-  // Separate players for overlapping sounds or loops if needed
+  static const int _poolSize = 10;
+  final List<AudioPlayer> _pool = [];
+  int _poolIndex = 0;
+
+  // Cache for loaded sounds to prevent disk I/O lag
+  final Map<String, BytesSource> _soundCache = {};
+
+  // Separate player for loops
   final AudioPlayer _loopPlayer = AudioPlayer();
 
   /// Play a one-shot sound effect with optional haptic feedback.
@@ -26,18 +40,37 @@ class WellnessAudioService {
     HapticFeedbackType hapticType = HapticFeedbackType.light,
   }) async {
     try {
-      final fullPath = 'lib/assets/sounds/$assetPath';
-      final bytes = await rootBundle.load(fullPath);
-      final source = BytesSource(bytes.buffer.asUint8List());
+      BytesSource? source = _soundCache[assetPath];
 
-      if (_player.state == PlayerState.playing) {
-        // Create a temporary player for overlapping sounds (like distinct pops)
-        final tempPlayer = AudioPlayer();
-        await tempPlayer.play(source);
-        tempPlayer.onPlayerComplete.listen((_) => tempPlayer.dispose());
-      } else {
-        await _player.play(source);
+      if (source == null) {
+        try {
+          final fullPath = 'lib/assets/sounds/$assetPath';
+          final bytes = await rootBundle.load(fullPath);
+          source = BytesSource(bytes.buffer.asUint8List());
+          _soundCache[assetPath] = source;
+        } catch (e) {
+          debugPrint("Error loading sound $assetPath: $e");
+          return;
+        }
       }
+
+      // Find a free player
+      AudioPlayer? player;
+      for (final p in _pool) {
+        if (p.state != PlayerState.playing) {
+          player = p;
+          break;
+        }
+      }
+
+      // If all busy, use round-robin
+      if (player == null) {
+        player = _pool[_poolIndex];
+        _poolIndex = (_poolIndex + 1) % _poolSize;
+        await player.stop();
+      }
+
+      await player.play(source);
 
       if (haptic) {
         triggerHaptic(hapticType);
@@ -78,7 +111,9 @@ class WellnessAudioService {
   /// Stop all playing sounds (useful for cleanup).
   Future<void> stopAll() async {
     try {
-      await _player.stop();
+      for (final player in _pool) {
+        await player.stop();
+      }
       await _loopPlayer.stop();
       await _loopPlayer.setReleaseMode(ReleaseMode.stop);
     } catch (e) {
