@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sherise/features/wellness/services/wellness_audio_service.dart';
 
 class BreathingGame extends StatefulWidget {
   const BreathingGame({super.key});
@@ -43,6 +44,7 @@ class _BreathingGameState extends State<BreathingGame>
 
   @override
   void dispose() {
+    WellnessAudioService().stopAll();
     _controller.dispose();
     super.dispose();
   }

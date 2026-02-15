@@ -42,6 +42,12 @@ class _BubblePopGameState extends State<BubblePopGame> {
   }
 
   @override
+  void dispose() {
+    WellnessAudioService().stopAll();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,

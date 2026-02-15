@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
+import 'package:sherise/core/services/localization_service.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
@@ -25,7 +26,6 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
   final FlutterNativeContactPicker _contactPicker =
       FlutterNativeContactPicker();
 
-
   // Profile Picture State
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
@@ -34,6 +34,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _loadDefaults();
+    _refreshDownloadStatus();
     _fadeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 250),
@@ -42,6 +43,27 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
       parent: _fadeController,
       curve: Curves.easeInOut,
     );
+  }
+
+  final Set<String> _downloadedLanguages = {};
+  final Map<String, bool> _isDownloadingMap = {};
+
+  Future<void> _refreshDownloadStatus() async {
+    final service = LocalizationService();
+    // Codes excluding 'en'
+    final codes = ['hi', 'mr', 'te', 'bn', 'pa'];
+    final downloaded = <String>{};
+    for (var code in codes) {
+      if (await service.isLanguageDownloaded(code)) {
+        downloaded.add(code);
+      }
+    }
+    if (mounted) {
+      setState(() {
+        _downloadedLanguages.clear();
+        _downloadedLanguages.addAll(downloaded);
+      });
+    }
   }
 
   Future<void> _loadDefaults() async {
@@ -103,8 +125,6 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
       _callEnabled = value;
     });
   }
-
-
 
   Future<void> _pickContact() async {
     try {
@@ -435,6 +455,18 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                             ),
                           ),
 
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0, left: 4.0),
+                            child: Text(
+                              "restart_warning".tr(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
+
                           const SizedBox(height: 24),
                           _buildSectionTitle('emergency_contact'.tr()),
                           const SizedBox(height: 10),
@@ -522,7 +554,6 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
 
                           const SizedBox(height: 24),
 
-
                           const SizedBox(height: 40),
                           SizedBox(
                             width: double.infinity,
@@ -586,41 +617,213 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
   }
 
   Widget _buildLangOption(BuildContext context, String name, Locale locale) {
+    if (locale.languageCode == 'en') {
+      return _buildEnglishOption(context, name);
+    }
+
     final isSelected = context.locale == locale;
+    final isDownloaded = _downloadedLanguages.contains(locale.languageCode);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: () => _handleLanguageTap(locale, isDownloaded),
+              child: Row(
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                      color: isSelected ? Colors.pinkAccent : Colors.black87,
+                    ),
+                  ),
+                  if (isSelected) ...[
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.pinkAccent,
+                      size: 16,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+
+          if (isDownloaded)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.grey),
+              tooltip: 'Delete Language',
+              onPressed: () => _confirmDeleteLanguage(locale),
+            )
+          else
+            _isDownloadingMap[locale.languageCode] == true
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : IconButton(
+                    icon: const Icon(
+                      Icons.download_rounded,
+                      color: Colors.blueAccent,
+                    ),
+                    tooltip: 'Download Language',
+                    onPressed: () => _makePermanent(locale),
+                  ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEnglishOption(BuildContext context, String name) {
+    final isSelected = context.locale.languageCode == 'en';
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () {
-        context.setLocale(locale);
-        _closeDropdown();
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      onTap: () => _changeLanguage(const Locale('en')),
+      child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFFFE5EC) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               name,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 16,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isSelected ? Colors.pinkAccent : Colors.black87,
               ),
             ),
-            if (isSelected)
+            if (isSelected) ...[
+              const SizedBox(width: 8),
               const Icon(
                 Icons.check_circle,
                 color: Colors.pinkAccent,
-                size: 18,
+                size: 16,
               ),
+            ],
+            const Spacer(),
+            const Icon(Icons.check, color: Colors.green, size: 20),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _changeLanguage(Locale locale) async {
+    if (!mounted) return;
+
+    // If same locale, try to force reload by switching
+    if (context.locale == locale && locale.languageCode != 'en') {
+      await context.setLocale(const Locale('en'));
+      if (!mounted) return;
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
+    await context.setLocale(locale);
+    if (mounted) setState(() {});
+    _closeDropdown();
+  }
+
+  Future<void> _handleLanguageTap(Locale locale, bool isPersistent) async {
+    if (isPersistent || locale.languageCode == 'en') {
+      await _changeLanguage(locale);
+      return;
+    }
+
+    try {
+      setState(() {
+        _isDownloadingMap[locale.languageCode] = true;
+      });
+
+      await LocalizationService().downloadToTemp(locale.languageCode);
+      await context.setLocale(locale);
+
+      if (mounted) setState(() {});
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Download the language to use it offline"),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDownloadingMap[locale.languageCode] = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _makePermanent(Locale locale) async {
+    try {
+      setState(() {
+        _isDownloadingMap[locale.languageCode] = true;
+      });
+
+      await LocalizationService().makePermanent(locale.languageCode);
+      await _refreshDownloadStatus();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "${_getLanguageName(locale)} is now available offline",
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Download failed. Check internet.")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDownloadingMap[locale.languageCode] = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteLanguage(Locale locale) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Language"),
+        content: Text(
+          "Are you sure you want to delete ${_getLanguageName(locale)}?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (!mounted) return;
+      if (context.locale == locale) {
+        await context.setLocale(const Locale('en'));
+      }
+      await LocalizationService().deleteLocalLanguage(locale.languageCode);
+      await _refreshDownloadStatus();
+    }
   }
 
   String _getLanguageName(Locale locale) {

@@ -2,8 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sherise/features/wellness/services/wellness_audio_service.dart';
 
-class FidgetBoardGame extends StatelessWidget {
+class FidgetBoardGame extends StatefulWidget {
   const FidgetBoardGame({super.key});
+
+  @override
+  State<FidgetBoardGame> createState() => _FidgetBoardGameState();
+}
+
+class _FidgetBoardGameState extends State<FidgetBoardGame> {
+  @override
+  void dispose() {
+    WellnessAudioService().stopAll();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
