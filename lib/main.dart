@@ -50,21 +50,51 @@ void main() async {
   final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
 
   runApp(
-    EasyLocalization(
-      supportedLocales: const [
-        Locale('en'),
-        Locale('hi'),
-        Locale('mr'),
-        Locale('te'),
-        Locale('bn'),
-        Locale('pa'),
-      ],
-      path: 'lib/assets/lang',
-      assetLoader: const FileAssetLoader(),
-      fallbackLocale: const Locale('en'),
-      child: MyApp(onboardingComplete: onboardingComplete),
+    RestartWidget(
+      child: EasyLocalization(
+        supportedLocales: const [
+          Locale('en'),
+          Locale('hi'),
+          Locale('mr'),
+          Locale('te'),
+          Locale('bn'),
+          Locale('pa'),
+        ],
+        path: 'lib/assets/lang',
+        assetLoader: const FileAssetLoader(),
+        fallbackLocale: const Locale('en'),
+        child: MyApp(onboardingComplete: onboardingComplete),
+      ),
     ),
   );
+}
+
+class RestartWidget extends StatefulWidget {
+  final Widget child;
+
+  const RestartWidget({super.key, required this.child});
+
+  static void restartApp(BuildContext context) {
+    context.findAncestorStateOfType<_RestartWidgetState>()?.restartApp();
+  }
+
+  @override
+  State<RestartWidget> createState() => _RestartWidgetState();
+}
+
+class _RestartWidgetState extends State<RestartWidget> {
+  Key key = UniqueKey();
+
+  void restartApp() {
+    setState(() {
+      key = UniqueKey();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return KeyedSubtree(key: key, child: widget.child);
+  }
 }
 
 class MyApp extends StatefulWidget {
