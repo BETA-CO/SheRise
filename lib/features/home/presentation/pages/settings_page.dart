@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 
 import 'package:sherise/core/services/localization_service.dart';
+import 'package:sherise/main.dart';
 
 class SettingsPage extends StatefulWidget {
   final bool isSetup;
@@ -84,7 +85,7 @@ class _SettingsPageState extends State<SettingsPage>
     }
 
     final callEnabled = prefs.getBool('emergency_call_enabled') ?? true;
-        _callEnabled = callEnabled;
+    _callEnabled = callEnabled;
   }
 
   Future<void> _addEmergencyContact(String number) async {
@@ -123,8 +124,6 @@ class _SettingsPageState extends State<SettingsPage>
       _callEnabled = value;
     });
   }
-
-
 
   void _toggleDropdown() {
     setState(() {
@@ -451,8 +450,6 @@ class _SettingsPageState extends State<SettingsPage>
                               activeThumbColor: Color(0xFF00695C),
                             ),
                           ),
-
-
                         ],
                       ),
                     ),
@@ -586,7 +583,22 @@ class _SettingsPageState extends State<SettingsPage>
 
   Future<void> _changeLanguage(Locale locale) async {
     if (!mounted) return;
-    context.setLocale(locale);
+
+    // If the user selects the SAME locale that is already active,
+    // EasyLocalization might not reload the assets (which might have been missing).
+    // We force a reload by switching to English briefly (if not already English),
+    // then back to the target locale.
+    if (context.locale == locale && locale.languageCode != 'en') {
+      await context.setLocale(const Locale('en'));
+      if (!mounted) return;
+      // Brief delay to ensure state propagates
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
+    await context.setLocale(locale);
+    // Force UI rebuild
+    if (mounted) setState(() {});
+
     _closeDropdown();
   }
 
@@ -606,12 +618,17 @@ class _SettingsPageState extends State<SettingsPage>
       // Download to cache
       await LocalizationService().downloadToTemp(locale.languageCode);
 
-      // Switch
-      await _changeLanguage(locale);
+      // Save as preference so it persists after restart
+      await context.setLocale(locale);
+
+      if (mounted) {
+        _showRestartDialog();
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
+            // Fixed const
             content: Text("Download the language to use it offline"),
           ),
         );
@@ -623,6 +640,25 @@ class _SettingsPageState extends State<SettingsPage>
         });
       }
     }
+  }
+
+  void _showRestartDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text('restart_required'.tr()),
+        content: Text('restart_content'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () {
+              RestartWidget.restartApp(context);
+            },
+            child: Text('restart_now'.tr()),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _makePermanent(Locale locale) async {
