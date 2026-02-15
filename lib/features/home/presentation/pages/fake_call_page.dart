@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import 'package:vibration/vibration.dart';
+import 'package:sherise/features/home/data/ai_guardian_service.dart';
+import 'package:sherise/core/services/background_call_manager.dart';
+import 'package:proximity_sensor/proximity_sensor.dart';
 
 class FakeCallPage extends StatefulWidget {
   const FakeCallPage({super.key});
@@ -180,6 +183,10 @@ class DummyCallScreen extends StatefulWidget {
 }
 
 class _DummyCallScreenState extends State<DummyCallScreen> {
+  final AIGuardianService _aiService = AIGuardianService();
+  StreamSubscription<dynamic>? _proximitySubscription;
+  bool _isNear = false;
+
   Timer? _timer;
   int _seconds = 0;
 
@@ -187,6 +194,34 @@ class _DummyCallScreenState extends State<DummyCallScreen> {
   void initState() {
     super.initState();
     _startTimer();
+    _initializeGuardian();
+  }
+
+  void _initializeGuardian() async {
+    // 1. Start Background Service
+    await BackgroundCallManager.initialize();
+    await BackgroundCallManager.startService();
+
+    // 2. Initialize AI Services
+    await _aiService.initTTS();
+    await _aiService.initSpeech();
+
+    // 3. Start Proximity Sensor
+    _proximitySubscription = ProximitySensor.events.listen((int event) {
+      if (mounted) {
+        setState(() {
+          // proximity_sensor plugin: 1 (or >0) usually means Object Detected (Near)
+          // 0 usually means No Object (Far)
+          // We want screen OFF (isNear=true) when Detected.
+          _isNear = (event > 0);
+        });
+      }
+    });
+
+    // Start listening after a short delay to allow TTS init
+    Future.delayed(const Duration(seconds: 1), () {
+      _aiService.speak("Hello? Is everything okay?");
+    });
   }
 
   void _startTimer() {
@@ -202,6 +237,9 @@ class _DummyCallScreenState extends State<DummyCallScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _proximitySubscription?.cancel();
+    _aiService.dispose();
+    BackgroundCallManager.stopService();
     super.dispose();
   }
 
@@ -213,78 +251,98 @@ class _DummyCallScreenState extends State<DummyCallScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: Colors.black,
+          body: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const SizedBox(height: 60),
-                const CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.grey,
-                  child: Icon(Icons.person, size: 60, color: Colors.white),
+                Column(
+                  children: [
+                    const SizedBox(height: 60),
+                    const CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.grey,
+                      child: Icon(Icons.person, size: 60, color: Colors.white),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      "fake_caller_name".tr(),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      _formatTime(_seconds),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-                Text(
-                  "fake_caller_name".tr(),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w500,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: GridView.count(
+                    shrinkWrap: true,
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 20,
+                    crossAxisSpacing: 20,
+                    children: [
+                      _buildCallOption(Icons.mic_off, "call_opt_mute".tr()),
+                      _buildCallOption(Icons.dialpad, "call_opt_keypad".tr()),
+                      _buildCallOption(
+                        Icons.volume_up,
+                        "call_opt_speaker".tr(),
+                      ),
+                      _buildCallOption(Icons.add, "call_opt_add".tr()),
+                      _buildCallOption(Icons.videocam, "call_opt_video".tr()),
+                      _buildCallOption(
+                        Icons.contacts,
+                        "call_opt_contacts".tr(),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  _formatTime(_seconds),
-                  style: const TextStyle(color: Colors.white70, fontSize: 18),
+
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 50),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      height: 75,
+                      width: 75,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.call_end,
+                        color: Colors.white,
+                        size: 35,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: GridView.count(
-                shrinkWrap: true,
-                crossAxisCount: 3,
-                mainAxisSpacing: 20,
-                crossAxisSpacing: 20,
-                children: [
-                  _buildCallOption(Icons.mic_off, "call_opt_mute".tr()),
-                  _buildCallOption(Icons.dialpad, "call_opt_keypad".tr()),
-                  _buildCallOption(Icons.volume_up, "call_opt_speaker".tr()),
-                  _buildCallOption(Icons.add, "call_opt_add".tr()),
-                  _buildCallOption(Icons.videocam, "call_opt_video".tr()),
-                  _buildCallOption(Icons.contacts, "call_opt_contacts".tr()),
-                ],
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.only(bottom: 50),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Container(
-                  height: 75,
-                  width: 75,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.call_end,
-                    color: Colors.white,
-                    size: 35,
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        // Proximity Screen Off
+        if (_isNear)
+          Container(
+            color: Colors.black,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+      ],
     );
   }
 

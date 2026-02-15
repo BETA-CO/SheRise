@@ -151,12 +151,14 @@ class _ProfilePageState extends State<ProfilePage>
     String memberSince,
   ) {
     final surname = user.surname ?? "";
-    final userName = user.name != null ? "${user.name!} $surname".trim() : "User";
+    final userName = user.name != null
+        ? "${user.name!} $surname".trim()
+        : "User";
     final userAge = user.age ?? "N/A";
-    final userDob =
-        user.dob != null ? DateFormat('dd MMM yyyy').format(user.dob!) : "N/A";
+    final userDob = user.dob != null
+        ? DateFormat('dd MMM yyyy').format(user.dob!)
+        : "N/A";
     final profilePicPath = user.profilePicPath;
-
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
@@ -167,12 +169,11 @@ class _ProfilePageState extends State<ProfilePage>
             radius: 60,
             backgroundColor: Colors.pink.shade100,
             backgroundImage:
-                (profilePicPath != null &&
-                        File(profilePicPath).existsSync())
-                    ? FileImage(File(profilePicPath))
-                    : (_profileImage != null
-                        ? FileImage(_profileImage!)
-                        : const AssetImage('lib/assets/home page logo.png')
+                (profilePicPath != null && File(profilePicPath).existsSync())
+                ? FileImage(File(profilePicPath))
+                : (_profileImage != null
+                      ? FileImage(_profileImage!)
+                      : const AssetImage('lib/assets/home page logo.png')
                             as ImageProvider),
           ),
           const SizedBox(height: 25),
@@ -193,7 +194,11 @@ class _ProfilePageState extends State<ProfilePage>
           const SizedBox(height: 15),
           _buildInfoRow(Icons.cake_outlined, 'label_age'.tr(), userAge),
           const SizedBox(height: 15),
-          _buildInfoRow(Icons.calendar_month_outlined, 'label_dob'.tr(), userDob),
+          _buildInfoRow(
+            Icons.calendar_month_outlined,
+            'label_dob'.tr(),
+            userDob,
+          ),
           const SizedBox(height: 15),
           _buildInfoRow(
             Icons.calendar_today_outlined,
@@ -242,11 +247,7 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  Widget _buildInfoRow(
-    IconData icon,
-    String title,
-    String subtitle,
-  ) {
+  Widget _buildInfoRow(IconData icon, String title, String subtitle) {
     return Row(
       children: [
         Icon(icon, color: Colors.black54, size: 24),
@@ -257,7 +258,10 @@ class _ProfilePageState extends State<ProfilePage>
             children: [
               Text(
                 title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
