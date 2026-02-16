@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import 'package:vibration/vibration.dart';
-import 'package:sherise/features/home/data/ai_guardian_service.dart';
-import 'package:sherise/core/services/background_call_manager.dart';
+import 'package:sherise/features/home/data/ai_guardian_background_service.dart';
 import 'package:proximity_sensor/proximity_sensor.dart';
 
 class FakeCallPage extends StatefulWidget {
@@ -183,7 +182,7 @@ class DummyCallScreen extends StatefulWidget {
 }
 
 class _DummyCallScreenState extends State<DummyCallScreen> {
-  final AIGuardianService _aiService = AIGuardianService();
+  // Removed local AIGuardianService instance
   StreamSubscription<dynamic>? _proximitySubscription;
   bool _isNear = false;
 
@@ -198,29 +197,17 @@ class _DummyCallScreenState extends State<DummyCallScreen> {
   }
 
   void _initializeGuardian() async {
-    // 1. Start Background Service
-    await BackgroundCallManager.initialize();
-    await BackgroundCallManager.startService();
+    // 1. Initialize & Start Background Service
+    await AIGuardianBackgroundService.initialize();
+    await AIGuardianBackgroundService.startService();
 
-    // 2. Initialize AI Services
-    await _aiService.initTTS();
-    await _aiService.initSpeech();
-
-    // 3. Start Proximity Sensor
+    // 2. Start Proximity Sensor
     _proximitySubscription = ProximitySensor.events.listen((int event) {
       if (mounted) {
         setState(() {
-          // proximity_sensor plugin: 1 (or >0) usually means Object Detected (Near)
-          // 0 usually means No Object (Far)
-          // We want screen OFF (isNear=true) when Detected.
           _isNear = (event > 0);
         });
       }
-    });
-
-    // Start listening after a short delay to allow TTS init
-    Future.delayed(const Duration(seconds: 1), () {
-      _aiService.speak("Hello? Is everything okay?");
     });
   }
 
@@ -238,8 +225,8 @@ class _DummyCallScreenState extends State<DummyCallScreen> {
   void dispose() {
     _timer?.cancel();
     _proximitySubscription?.cancel();
-    _aiService.dispose();
-    BackgroundCallManager.stopService();
+    // Stop the background service when the call screen is closed
+    AIGuardianBackgroundService.stopService();
     super.dispose();
   }
 
