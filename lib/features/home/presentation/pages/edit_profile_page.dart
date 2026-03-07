@@ -31,11 +31,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _surnameController = TextEditingController(text: widget.user.surname);
     _dob = widget.user.dob;
 
-    if (widget.user.profilePicPath != null) {
+    _loadSavedImage();
+  }
+
+  Future<void> _loadSavedImage() async {
+    if (widget.user.profilePicPath != null && widget.user.profilePicPath!.isNotEmpty) {
       final file = File(widget.user.profilePicPath!);
       if (file.existsSync()) {
-        _profileImage = file;
+        setState(() => _profileImage = file);
+        return;
       }
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    String? imagePath = prefs.getString('user_profile_pic') ?? prefs.getString('profile_image');
+
+    if (imagePath != null && imagePath.isNotEmpty && File(imagePath).existsSync()) {
+      setState(() => _profileImage = File(imagePath));
     }
   }
 
@@ -167,8 +179,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             backgroundColor: Colors.pink.shade100,
                             backgroundImage: _profileImage != null
                                 ? FileImage(_profileImage!)
-                                : const AssetImage(
-                                        'lib/assets/home page logo.png')
+                                : const AssetImage('lib/assets/icon/noprofile.png')
                                     as ImageProvider,
                           ),
                           InkWell(

@@ -8,9 +8,8 @@ class VideoRepository {
   final Dio _dio = Dio();
   static const String _storageKey = 'cached_video_list';
 
-  // TODO: Replace with your Google Apps Script Web App URL
   static const String _jsonUrl =
-      'https://script.google.com/macros/s/AKfycbwuuA0a4doAd7N5KgIDz3CC_sP4kdc5EYUHnXFpenTYok7kJf8uhuLJtCelenLTQmOj8w/exec';
+      'https://script.google.com/macros/s/AKfycbxLrzSoRduN4Q6Pr3S_pdtHLzH9DXQPajeLqFhQXqodVs9grmmvWG_GEXzWlrMl0FFbyQ/exec';
 
   Future<List<Video>> getVideos() async {
     if (_jsonUrl.contains('REPLACE')) {

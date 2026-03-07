@@ -4,6 +4,10 @@ import 'package:sherise/features/home/presentation/pages/home_pages.dart';
 import 'package:sherise/features/home/presentation/pages/videos_page.dart';
 import 'package:sherise/features/home/presentation/pages/profile_page.dart';
 import 'package:sherise/features/chatbot/presentation/pages/chatbot_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sherise/features/safety/emergency_lock_screen.dart';
+import 'package:sherise/features/safety/safety_service.dart';
+import 'package:flutter/services.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -28,7 +32,22 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
+    _checkEmergencyState();
   }
+
+
+  Future<void> _checkEmergencyState() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('emergency_active') ?? false) {
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const EmergencyLockScreen()),
+        );
+      }
+    }
+  }
+
 
   @override
   void dispose() {

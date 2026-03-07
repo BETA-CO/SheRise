@@ -62,6 +62,7 @@ class _VideosPageState extends State<VideosPage>
                         _buildVideoCard(
                           title: 'ngo_seminars'.tr(),
                           imagePath: 'lib/assets/video cards/NGO.png',
+                          imagePadding: 20.0,
                           onTap: () {
                             Navigator.push(
                               context,
@@ -135,6 +136,7 @@ class _VideosPageState extends State<VideosPage>
     required String title,
     required String imagePath,
     required VoidCallback onTap,
+    double imagePadding = 0.0,
   }) {
     return InkWell(
       onTap: onTap,
@@ -159,19 +161,24 @@ class _VideosPageState extends State<VideosPage>
                   topLeft: Radius.circular(16),
                   bottomLeft: Radius.circular(16),
                 ),
-                child: Image.asset(
-                  imagePath,
+                child: Container(
                   width: 120,
                   height: 120,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 120,
-                      height: 120,
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.broken_image, color: Colors.grey),
-                    );
-                  },
+                  padding: EdgeInsets.all(imagePadding),
+                  child: Image.asset(
+                    imagePath,
+                    width: 120,
+                    height: 120,
+                    fit: imagePadding > 0 ? BoxFit.contain : BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 120,
+                        height: 120,
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.broken_image, color: Colors.grey),
+                      );
+                    },
+                  ),
                 ),
               ),
 

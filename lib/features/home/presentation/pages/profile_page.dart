@@ -11,6 +11,7 @@ import 'package:sherise/features/auth/domain/entities/app_user.dart';
 import 'package:sherise/features/home/presentation/pages/settings_page.dart';
 import 'package:sherise/features/home/presentation/pages/edit_profile_page.dart';
 import 'package:sherise/features/onboarding/presentation/pages/landing_page.dart';
+import 'package:sherise/features/onboarding/presentation/pages/landing_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -27,6 +28,11 @@ class _ProfilePageState extends State<ProfilePage>
   void initState() {
     super.initState();
     _loadSavedImage();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    // Other settings if any
   }
 
   Future<void> _loadSavedImage() async {
@@ -173,7 +179,7 @@ class _ProfilePageState extends State<ProfilePage>
                 ? FileImage(File(profilePicPath))
                 : (_profileImage != null
                       ? FileImage(_profileImage!)
-                      : const AssetImage('lib/assets/home page logo.png')
+                      : const AssetImage('lib/assets/icon/noprofile.png')
                             as ImageProvider),
           ),
           const SizedBox(height: 25),
@@ -239,6 +245,7 @@ class _ProfilePageState extends State<ProfilePage>
           ),
           const SizedBox(height: 30),
           const Divider(color: Colors.black26),
+
           const SizedBox(height: 20),
           // Delete Account button removed as per request
           _buildLogout(context),
@@ -322,7 +329,7 @@ class _ProfilePageState extends State<ProfilePage>
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF8BA7),
+              backgroundColor: Colors.red,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
