@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
 import 'package:sherise/core/services/localization_service.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,8 +22,6 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   final TextEditingController _phoneController = TextEditingController();
-  final FlutterNativeContactPicker _contactPicker =
-      FlutterNativeContactPicker();
 
   // Profile Picture State
   File? _profileImage;
@@ -126,24 +123,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
     });
   }
 
-  Future<void> _pickContact() async {
-    try {
-      final contact = await _contactPicker.selectContact();
-      if (contact != null &&
-          contact.phoneNumbers != null &&
-          contact.phoneNumbers!.isNotEmpty) {
-        String number = contact.phoneNumbers!.first;
-        if (mounted) {
-          setState(() {
-            _phoneController.text = number;
-          });
-        }
-        _saveEmergencyContact(number);
-      }
-    } catch (e) {
-      debugPrint('Contact picker error: $e');
-    }
-  }
+
 
   void _toggleDropdown() {
     setState(() {
@@ -166,20 +146,12 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
   }
 
   Future<void> _finishSetup() async {
-    if (_profileImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('err_profile_pic'.tr()),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
 
-    if (_phoneController.text.trim().isEmpty) {
+    final phoneText = _phoneController.text.trim();
+    if (phoneText.isEmpty || phoneText.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(phoneText)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('err_emergency_contact'.tr()),
+        const SnackBar(
+          content: Text('Please enter a valid 10-digit emergency number.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -496,13 +468,10 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                                   Icons.phone,
                                   color: Colors.black,
                                 ),
-                                suffixIcon: IconButton(
-                                  icon: const Icon(
-                                    Icons.contacts,
+                                suffixIcon: const Icon(
+                                    Icons.contact_phone,
                                     color: Colors.black,
                                   ),
-                                  onPressed: _pickContact,
-                                ),
                                 contentPadding: const EdgeInsets.symmetric(
                                   vertical: 15,
                                 ),

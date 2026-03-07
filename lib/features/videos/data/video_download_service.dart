@@ -40,4 +40,18 @@ class VideoDownloadService {
     final file = File('${dir.path}/$fileName.mp4');
     return file.exists();
   }
+
+  Future<bool> deleteVideo(String fileName) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/$fileName.mp4');
+      if (await file.exists()) {
+        await file.delete();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      throw Exception('Deletion failed: $e');
+    }
+  }
 }

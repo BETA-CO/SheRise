@@ -14,6 +14,7 @@ import 'package:sherise/core/utils/smooth_scroll_behavior.dart';
 import 'package:sherise/core/localization/file_asset_loader.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:sherise/features/home/data/safety_background_service.dart';
 
 // Background Callback for Home Widget
 @pragma('vm:entry-point')

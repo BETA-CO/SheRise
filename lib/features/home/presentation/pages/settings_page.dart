@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'package:sherise/core/services/localization_service.dart';
 
@@ -20,8 +21,6 @@ class _SettingsPageState extends State<SettingsPage>
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   final TextEditingController _phoneController = TextEditingController();
-  final FlutterNativeContactPicker _contactPicker =
-      FlutterNativeContactPicker();
   List<String> _emergencyContacts = [];
 
   @override
@@ -357,37 +356,105 @@ class _SettingsPageState extends State<SettingsPage>
                             ),
                             child: Column(
                               children: [
-                                // Add Button
-                                InkWell(
-                                  onTap: _pickContact,
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFF2FCF9),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.add,
-                                          color: Color(0xFF00695C),
-                                        ),
+                                // Manual Entry
+                                if (_emergencyContacts.isEmpty) ...[
+                                  const SizedBox(height: 12),
+                                  TextField(
+                                    controller: _phoneController,
+                                    keyboardType: TextInputType.phone,
+                                    decoration: InputDecoration(
+                                      hintText: 'Enter emergency number'.tr(),
+                                      prefixIcon: const Icon(Icons.phone_outlined),
+                                      suffixIcon: IconButton(
+                                        icon: const Icon(Icons.add_circle, color: Color(0xFF00695C)),
+                                        onPressed: () async {
+                                          final number = _phoneController.text.trim();
+                                          if (number.isNotEmpty) {
+                                            if (number.length == 10 && RegExp(r'^[0-9]+$').hasMatch(number)) {
+                                              _addEmergencyContact(number);
+                                              _phoneController.clear();
+                                            } else {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text('Please enter a valid 10-digit number'),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                            }
+                                          } else {
+                                            // Handle empty input - open contact picker
+                                            try {
+                                              final permissionStatus = await Permission.contacts.request();
+                                              if (permissionStatus.isGranted && context.mounted) {
+                                                final FlutterNativeContactPicker contactPicker = FlutterNativeContactPicker();
+                                                final contact = await contactPicker.selectContact();
+                                                
+                                                if (contact != null && contact.phoneNumbers != null && contact.phoneNumbers!.isNotEmpty) {
+                                                  // Clean the number (remove spaces, dashes, brackets, etc., keep only digits and +)
+                                                  String cleanNumber = contact.phoneNumbers!.first.replaceAll(RegExp(r'[^\d+]'), '');
+                                                  
+                                                  if (cleanNumber.length >= 10) {
+                                                    if (cleanNumber.startsWith('+91') && cleanNumber.length == 13) {
+                                                      cleanNumber = cleanNumber.substring(3); // Remove +91
+                                                    }
+                                                    
+                                                    if (cleanNumber.length >= 10) {
+                                                        _addEmergencyContact(cleanNumber);
+                                                    } else {
+                                                        if (context.mounted) {
+                                                            ScaffoldMessenger.of(context).showSnackBar(
+                                                              const SnackBar(
+                                                                content: Text('Invalid contact number format'),
+                                                                backgroundColor: Colors.red,
+                                                              ),
+                                                            );
+                                                        }
+                                                    }
+                                                  } else {
+                                                      if (context.mounted) {
+                                                          ScaffoldMessenger.of(context).showSnackBar(
+                                                            const SnackBar(
+                                                              content: Text('Invalid contact number format'),
+                                                              backgroundColor: Colors.red,
+                                                            ),
+                                                          );
+                                                      }
+                                                  }
+                                                }
+                                              } else {
+                                                  if (context.mounted) {
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        const SnackBar(
+                                                          content: Text('Contacts permission required'),
+                                                          backgroundColor: Colors.red,
+                                                        ),
+                                                      );
+                                                  }
+                                              }
+                                            } catch (e) {
+                                               // User cancelled or other error
+                                            }
+                                          }
+                                        },
                                       ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        "add_contact_btn".tr(),
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: BorderSide(color: Colors.grey.shade300),
                                       ),
-                                    ],
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: BorderSide(color: Colors.grey.shade300),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: const BorderSide(color: Color(0xFF00695C)),
+                                      ),
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    ),
                                   ),
-                                ),
+                                ],
                                 if (_emergencyContacts.isNotEmpty) ...[
-                                  const SizedBox(height: 16),
-                                  const Divider(height: 1),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 12),
                                   ListView.builder(
                                     shrinkWrap: true,
                                     physics:
@@ -395,19 +462,30 @@ class _SettingsPageState extends State<SettingsPage>
                                     itemCount: _emergencyContacts.length,
                                     itemBuilder: (context, index) {
                                       final contact = _emergencyContacts[index];
-                                      return ListTile(
-                                        contentPadding: EdgeInsets.zero,
-                                        leading: const Icon(
-                                          Icons.person_outline,
+                                      return Container(
+                                        margin: const EdgeInsets.only(bottom: 8),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: Colors.grey.shade200),
+                                          borderRadius: BorderRadius.circular(10),
                                         ),
-                                        title: Text(contact),
-                                        trailing: IconButton(
-                                          icon: const Icon(
-                                            Icons.delete_outline,
-                                            color: Colors.red,
+                                        child: ListTile(
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                          leading: const CircleAvatar(
+                                            backgroundColor: Color(0xFFE0F2F1),
+                                            child: Icon(
+                                              Icons.person_outline,
+                                              color: Color(0xFF00695C),
+                                            ),
                                           ),
-                                          onPressed: () =>
-                                              _removeEmergencyContact(contact),
+                                          title: Text(contact, style: const TextStyle(fontWeight: FontWeight.w500)),
+                                          trailing: IconButton(
+                                            icon: const Icon(
+                                              Icons.delete_outline,
+                                              color: Colors.red,
+                                            ),
+                                            onPressed: () =>
+                                                _removeEmergencyContact(contact),
+                                          ),
                                         ),
                                       );
                                     },
@@ -415,7 +493,7 @@ class _SettingsPageState extends State<SettingsPage>
                                 ] else
                                   Padding(
                                     padding: const EdgeInsets.only(top: 12.0),
-                                    child: Text("no_contacts".tr()),
+                                    child: Text("no_contacts".tr(), style: TextStyle(color: Colors.grey.shade600)),
                                   ),
                               ],
                             ),
@@ -720,23 +798,6 @@ class _SettingsPageState extends State<SettingsPage>
       }
       await LocalizationService().deleteLocalLanguage(locale.languageCode);
       await _refreshDownloadStatus();
-    }
-  }
-
-  Future<void> _pickContact() async {
-    try {
-      final contact = await _contactPicker.selectContact();
-      if (contact != null &&
-          contact.phoneNumbers != null &&
-          contact.phoneNumbers!.isNotEmpty) {
-        String number = contact.phoneNumbers!.first;
-        // Optional: Clean the number (remove spaces, dashes, etc.)
-        // number = number.replaceAll(RegExp(r'[^\d+]'), '');
-        _addEmergencyContact(number);
-      }
-    } catch (e) {
-      // User cancelled or error
-      debugPrint('Contact picker error: $e');
     }
   }
 

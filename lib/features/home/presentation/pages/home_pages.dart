@@ -252,13 +252,15 @@ class _HomePageState extends State<HomePage>
                                         children: [
                                           if (_isSOSActive) ...[
                                             Text(
-                                              "$_countdownSeconds",
-                                              style: const TextStyle(
+                                              _sosTimer != null ? "$_countdownSeconds" : "ACTIVE",
+                                              style: TextStyle(
                                                 color: Colors.red,
                                                 fontWeight: FontWeight.w900,
-                                                fontSize: 60,
+                                                fontSize: _sosTimer != null ? 60 : 28,
                                               ),
                                             ),
+                                            if (_sosTimer != null) ...[
+                                            ],
                                             const Text(
                                               "STOP",
                                               style: TextStyle(
@@ -294,12 +296,18 @@ class _HomePageState extends State<HomePage>
                                       SizedBox(
                                         width: 150,
                                         height: 150,
-                                        child: CircularProgressIndicator(
-                                          value: _countdownSeconds / 10,
-                                          strokeWidth: 8,
-                                          color: Colors.red,
-                                          backgroundColor: Colors.red.shade100,
-                                        ),
+                                        child: _sosTimer != null 
+                                          ? CircularProgressIndicator(
+                                              value: _countdownSeconds / 10,
+                                              strokeWidth: 8,
+                                              color: Colors.red,
+                                              backgroundColor: Colors.red.shade100,
+                                            )
+                                          : CircularProgressIndicator(
+                                              strokeWidth: 8,
+                                              color: Colors.red,
+                                              backgroundColor: Colors.red.shade100,
+                                            ),
                                       ),
                                   ],
                                 ),
@@ -312,30 +320,15 @@ class _HomePageState extends State<HomePage>
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             child: Column(
                               children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildFeatureButton(
-                                        Icons.local_police_outlined,
-                                        "feature_police".tr(),
-                                        () => _showCallConfirmationDialog(
-                                          "feature_police".tr(),
-                                          "100",
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: _buildFeatureButton(
-                                        Icons.support_agent_outlined,
-                                        "feature_helpline".tr(),
-                                        () => _showCallConfirmationDialog(
-                                          "feature_helpline".tr(),
-                                          "1091",
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                _buildFeatureButton(
+                                  Icons.support_agent_outlined,
+                                  "feature_helpline".tr(),
+                                  () => _showCallConfirmationDialog(
+                                    "feature_helpline".tr(),
+                                    "1091",
+                                  ),
+                                  aspectRatio:
+                                      2.5, // Wider aspect ratio for full width
                                 ),
                                 const SizedBox(height: 16),
                                 Row(
@@ -387,39 +380,6 @@ class _HomePageState extends State<HomePage>
                             child: Column(
                               children: [
                                 _buildListFeatureButton(
-                                  Icons.spa_outlined,
-                                  "feature_antistress".tr(),
-                                  () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const WellnessPage(),
-                                    ),
-                                  ),
-                                ),
-                                _buildListFeatureButton(
-                                  Icons.map_outlined,
-                                  "feature_nearby".tr(),
-                                  () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const NearbyPlacesPage(),
-                                    ),
-                                  ),
-                                ),
-                                _buildListFeatureButton(
-                                  Icons.gavel_outlined,
-                                  "feature_legal".tr(),
-                                  () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const LegalRightsPage(),
-                                    ),
-                                  ),
-                                ),
-                                _buildListFeatureButton(
                                   Icons.share_location_outlined,
                                   "feature_share_loc".tr(),
                                   () async {
@@ -467,6 +427,39 @@ class _HomePageState extends State<HomePage>
                                     MaterialPageRoute(
                                       builder: (context) =>
                                           const FakeCallPage(),
+                                    ),
+                                  ),
+                                ),
+                                _buildListFeatureButton(
+                                  Icons.map_outlined,
+                                  "feature_nearby".tr(),
+                                  () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const NearbyPlacesPage(),
+                                    ),
+                                  ),
+                                ),
+                                _buildListFeatureButton(
+                                  Icons.gavel_outlined,
+                                  "feature_legal".tr(),
+                                  () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const LegalRightsPage(),
+                                    ),
+                                  ),
+                                ),
+                                _buildListFeatureButton(
+                                  Icons.spa_outlined,
+                                  "feature_antistress".tr(),
+                                  () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const WellnessPage(),
                                     ),
                                   ),
                                 ),
@@ -544,31 +537,41 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  void _startSOSSequence() {
+  Future<void> _startSOSSequence() async {
     // 1. Play Siren immediately
     SafetyService().startSiren();
+    
+    final prefs = await SharedPreferences.getInstance();
+    final callEnabled = prefs.getBool('emergency_call_enabled') ?? true;
 
     setState(() {
       _isSOSActive = true;
       _countdownSeconds = 10;
     });
 
-    // 2. Start Countdown
-    _sosTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_countdownSeconds > 0) {
-        setState(() {
-          _countdownSeconds--;
-        });
-      } else {
-        // Countdown finished
-        _sosTimer?.cancel();
-        _executeEmergencyProtocol();
-      }
-    });
+    if (callEnabled) {
+      // 2. Start Countdown automatically Trigger Protocol
+      _sosTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (_countdownSeconds > 0) {
+          setState(() {
+            _countdownSeconds--;
+          });
+        } else {
+          // Countdown finished
+          _sosTimer?.cancel();
+          _sosTimer = null;
+          _executeEmergencyProtocol();
+        }
+      });
+    } else {
+      // Continuous SOS without auto SMS/Call Protocol Wait for Stop
+      // Timer is left null, UI will adapt
+    }
   }
 
   void _stopSOSSequence() {
     _sosTimer?.cancel();
+    _sosTimer = null;
     SafetyService().stopSiren();
     setState(() {
       _isSOSActive = false;
@@ -651,11 +654,16 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  Widget _buildFeatureButton(IconData icon, String label, VoidCallback onTap) {
+  Widget _buildFeatureButton(
+    IconData icon,
+    String label,
+    VoidCallback onTap, {
+    double aspectRatio = 1.3,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: AspectRatio(
-        aspectRatio: 1.3,
+        aspectRatio: aspectRatio,
         child: Container(
           decoration: BoxDecoration(
             color: const Color(0xFFF2FCF9),

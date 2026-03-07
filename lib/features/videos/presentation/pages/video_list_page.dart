@@ -17,6 +17,7 @@ class _VideoListPageState extends State<VideoListPage> {
   final VideoRepository _repository = VideoRepository();
   final VideoDownloadService _downloadService = VideoDownloadService();
   final Set<String> _downloadedVideoIds = {};
+  final Map<String, double> _downloadProgress = {};
 
   late Future<List<Video>> _videosFuture;
 
@@ -30,7 +31,11 @@ class _VideoListPageState extends State<VideoListPage> {
           .toList();
       for (final v in filtered) {
         if (await _downloadService.isVideoDownloaded(v.id)) {
-          _downloadedVideoIds.add(v.id);
+          if (mounted) {
+            setState(() {
+              _downloadedVideoIds.add(v.id);
+            });
+          }
         }
       }
       return filtered;
@@ -45,8 +50,10 @@ class _VideoListPageState extends State<VideoListPage> {
       if (!mounted) return;
       _navigateToPlayer(video);
     } else {
-      if (!mounted) return;
-      _showDownloadDialog(video);
+      if (_downloadProgress.containsKey(video.id)) {
+        return; // Already downloading
+      }
+      _startDownload(video);
     }
   }
 
@@ -71,31 +78,89 @@ class _VideoListPageState extends State<VideoListPage> {
     }
   }
 
-  void _showDownloadDialog(Video video) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return _DownloadDialog(
-          video: video,
-          downloadService: _downloadService,
-          onCompleted: (path) {
+  void _startDownload(Video video) async {
+    setState(() {
+      _downloadProgress[video.id] = 0.0;
+    });
+
+    try {
+      await _downloadService.downloadVideo(
+        video.downloadUrl,
+        video.id,
+        (progress) {
+          if (mounted) {
             setState(() {
-              _downloadedVideoIds.add(video.id);
+              _downloadProgress[video.id] = progress;
             });
-            Navigator.pop(context); // Close dialog
-            // Auto play or let user tap again? Let's auto play.
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    VideoPlayerPage(videoPath: path, videoTitle: video.title),
-              ),
-            );
-          },
+          }
+        },
+      );
+
+      if (mounted) {
+        setState(() {
+          _downloadedVideoIds.add(video.id);
+          _downloadProgress.remove(video.id);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${video.title} download complete'),
+            backgroundColor: const Color(0xFF00695C),
+          ),
         );
-      },
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _downloadProgress.remove(video.id);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Download failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteVideo(Video video) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Video'),
+        content: Text('Are you sure you want to delete "${video.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
+
+    if (confirmed == true) {
+      try {
+        await _downloadService.deleteVideo(video.id);
+        if (mounted) {
+          setState(() {
+            _downloadedVideoIds.remove(video.id);
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Video deleted')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -203,21 +268,26 @@ class _VideoListPageState extends State<VideoListPage> {
   }
 
   Widget _buildModernVideoCard(Video video) {
-    return GestureDetector(
-      onTap: () => _onVideoTap(video),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.black, width: 0.1),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF00695C).withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
+    final bool isDownloaded = _downloadedVideoIds.contains(video.id);
+    final double? progress = _downloadProgress[video.id];
+    final bool isDownloading = progress != null;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black, width: 0.1),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00695C).withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () => _onVideoTap(video),
+        borderRadius: BorderRadius.circular(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -257,6 +327,22 @@ class _VideoListPageState extends State<VideoListPage> {
                           ),
                         ),
                       ),
+                      // Progress Overlay
+                      if (isDownloading)
+                        Container(
+                          color: Colors.black26,
+                          child: Center(
+                            child: SizedBox(
+                              width: 60,
+                              height: 60,
+                              child: CircularProgressIndicator(
+                                value: progress > 0 ? progress : null,
+                                color: Colors.white,
+                                strokeWidth: 4,
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -296,19 +382,31 @@ class _VideoListPageState extends State<VideoListPage> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Download Icon (Subtle)
-                  if (!_downloadedVideoIds.contains(video.id))
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF2FCF9),
-                        shape: BoxShape.circle,
+                  // Action Icons
+                  if (isDownloading)
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF00695C),
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.download_rounded,
-                        size: 20,
-                        color: Color(0xFF00695C),
-                      ),
+                    )
+                  else if (isDownloaded)
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      onPressed: () => _deleteVideo(video),
+                      tooltip: 'Delete Video',
+                    )
+                  else
+                    IconButton(
+                      icon: const Icon(Icons.download_rounded,
+                          color: Color(0xFF00695C)),
+                      onPressed: () => _onVideoTap(video),
+                      tooltip: 'Download Video',
                     ),
                 ],
               ),
@@ -342,113 +440,5 @@ class _VideoListPageState extends State<VideoListPage> {
     } catch (_) {
       return "Recently added";
     }
-  }
-}
-
-class _DownloadDialog extends StatefulWidget {
-  final Video video;
-  final VideoDownloadService downloadService;
-  final Function(String) onCompleted;
-
-  const _DownloadDialog({
-    required this.video,
-    required this.downloadService,
-    required this.onCompleted,
-  });
-
-  @override
-  State<_DownloadDialog> createState() => _DownloadDialogState();
-}
-
-class _DownloadDialogState extends State<_DownloadDialog> {
-  double _progress = 0.0;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _startDownload();
-  }
-
-  void _startDownload() async {
-    try {
-      final path = await widget.downloadService.downloadVideo(
-        widget.video.downloadUrl,
-        widget.video.id,
-        (progress) {
-          if (mounted) setState(() => _progress = progress);
-        },
-      );
-      if (!mounted) return;
-      widget.onCompleted(path);
-    } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              "Preparing Video",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.video.title,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600], fontSize: 13),
-            ),
-            const SizedBox(height: 24),
-
-            if (_error != null)
-              Text(_error!, style: const TextStyle(color: Colors.red))
-            else
-              Column(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: _progress,
-                      backgroundColor: Colors.grey[200],
-                      valueColor: const AlwaysStoppedAnimation(Colors.black),
-                      minHeight: 6,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    "${(_progress * 100).toStringAsFixed(0)}%",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-
-            if (_error != null) ...[
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  "Close",
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
   }
 }

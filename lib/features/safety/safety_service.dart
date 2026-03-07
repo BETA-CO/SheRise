@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:torch_light/torch_light.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
@@ -9,18 +10,44 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SafetyService {
   static final SafetyService _instance = SafetyService._internal();
+  static const _channel = MethodChannel('com.example.sherise/emergency');
 
   factory SafetyService() {
     return _instance;
   }
 
-  SafetyService._internal();
+  SafetyService._internal() {
+    _initAudio();
+  }
+
+
+  void _initAudio() async {
+    // Global configuration to allow mixing with other apps and active mic sessions
+    await AudioPlayer.global.setAudioContext(
+      AudioContext(
+        android: const AudioContextAndroid(
+          usageType: AndroidUsageType.alarm,
+          contentType: AndroidContentType.sonification,
+          audioFocus: AndroidAudioFocus.none, // Don't request exclusive focus
+        ),
+        iOS: AudioContextIOS(
+          category: AVAudioSessionCategory.playAndRecord,
+          options: {
+            AVAudioSessionOptions.mixWithOthers,
+            AVAudioSessionOptions.defaultToSpeaker,
+            AVAudioSessionOptions.allowBluetooth,
+          },
+        ),
+      ),
+    );
+  }
 
   final Telephony _telephony = Telephony.instance;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   void dispose() {
     _audioPlayer.dispose();
+    _stopStrobe();
   }
 
   // --- Public Methods for SOS Button ---
@@ -30,7 +57,10 @@ class SafetyService {
       // Use BytesSource to play from rootBundle regardless of asset prefix
       final bytes = await rootBundle.load('lib/assets/sounds/siren.mp3');
       await _audioPlayer.setSource(BytesSource(bytes.buffer.asUint8List()));
+      await _audioPlayer.setVolume(1.0);
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop); // Keep siren looping
       await _audioPlayer.resume();
+      _startStrobe();
     } catch (e) {
       debugPrint("Audio player error (Assets missing?): $e");
     }
@@ -38,6 +68,7 @@ class SafetyService {
 
   Future<void> stopSiren() async {
     await _audioPlayer.stop();
+    await _stopStrobe();
   }
 
   Future<void> sendEmergencySMS() async {
@@ -108,11 +139,11 @@ class SafetyService {
     // Send immediate update
     await _sendLocationUpdate(recipients, isFirst: true);
 
-    // Schedule updates every 10 minutes for 1 hour (6 updates total)
+    // Schedule updates every 15 minutes for 1 hour (4 updates total)
     int updatesSent = 0;
-    const int maxUpdates = 6;
+    const int maxUpdates = 4;
 
-    _locationTimer = Timer.periodic(const Duration(minutes: 10), (timer) async {
+    _locationTimer = Timer.periodic(const Duration(minutes: 15), (timer) async {
       updatesSent++;
       if (updatesSent >= maxUpdates) {
         stopLocationSharingSession();
@@ -151,6 +182,37 @@ class SafetyService {
       }
     } catch (e) {
       debugPrint("Error sharing location: $e");
+    }
+  }
+
+  // --- Flashlight Strobe Logic ---
+  Timer? _strobeTimer;
+
+  void _startStrobe() {
+    _strobeTimer?.cancel();
+    bool isOn = true;
+    // Toggle every 100ms for high frequency
+    _strobeTimer = Timer.periodic(const Duration(milliseconds: 100), (_) async {
+      try {
+        if (isOn) {
+          await TorchLight.enableTorch();
+        } else {
+          await TorchLight.disableTorch();
+        }
+        isOn = !isOn;
+      } catch (e) {
+        debugPrint("Torch error: $e");
+      }
+    });
+  }
+
+  Future<void> _stopStrobe() async {
+    _strobeTimer?.cancel();
+    _strobeTimer = null;
+    try {
+      await TorchLight.disableTorch();
+    } catch (e) {
+      debugPrint("Torch error on stop: $e");
     }
   }
 }
