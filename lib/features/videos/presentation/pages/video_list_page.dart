@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:sherise/features/videos/data/video_model.dart';
 import 'package:sherise/features/videos/data/video_repository.dart';
 import 'package:sherise/features/videos/data/video_download_service.dart';
@@ -169,7 +170,7 @@ class _VideoListPageState extends State<VideoListPage> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          widget.category,
+          widget.category == 'NGO Seminars' ? 'ngo_seminars_title'.tr() : widget.category,
           style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,

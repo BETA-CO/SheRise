@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -77,11 +78,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
+    final now = DateTime.now();
+    final fiveYearsAgo = DateTime(now.year - 5, now.month, now.day);
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _dob ?? DateTime.now(),
+      initialDate: _dob != null && _dob!.isBefore(fiveYearsAgo)
+          ? _dob!
+          : fiveYearsAgo,
       firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
+      lastDate: fiveYearsAgo,
     );
     if (picked != null && picked != _dob) {
       setState(() {
@@ -205,6 +210,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   const SizedBox(height: 30),
                   TextField(
                     controller: _nameController,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+                    ],
                     decoration: InputDecoration(
                       labelText: 'name_hint'.tr(), // "Name"
                       border: OutlineInputBorder(
@@ -216,6 +224,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   const SizedBox(height: 20),
                   TextField(
                     controller: _surnameController,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+                    ],
                     decoration: InputDecoration(
                       labelText: 'Surname', // "Surname" key might not exist? using literal for now or 'surname'.tr()
                       border: OutlineInputBorder(

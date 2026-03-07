@@ -60,7 +60,7 @@ class _VideosPageState extends State<VideosPage>
                     child: Column(
                       children: [
                         _buildVideoCard(
-                          title: 'ngo_seminars'.tr(),
+                          title: 'ngo_seminars_title'.tr(),
                           imagePath: 'lib/assets/video cards/NGO.png',
                           imagePadding: 20.0,
                           onTap: () {
