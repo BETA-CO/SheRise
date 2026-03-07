@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:sherise/features/auth/presentation/components/my_button.dart';
 import 'package:sherise/features/auth/presentation/components/my_textfield.dart';
@@ -17,13 +18,14 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   DateTime? selectedDate;
 
   void selectDate(BuildContext context) async {
+    final now = DateTime.now();
+    final fiveYearsAgo = DateTime(now.year - 5, now.month, now.day);
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now().subtract(
-        const Duration(days: 365 * 18),
-      ), // Default ~18 years
+      initialDate: selectedDate ??
+          DateTime(now.year - 18, now.month, now.day), // Default ~18 years
       firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
+      lastDate: fiveYearsAgo,
     );
     if (picked != null && picked != selectedDate) {
       setState(() {
@@ -98,6 +100,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                 controller: nameController,
                 hintText: "hint_first_name".tr(),
                 obscureText: false,
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+                ],
               ),
               const SizedBox(height: 20),
 
@@ -106,6 +111,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
                 controller: surnameController,
                 hintText: "hint_surname".tr(),
                 obscureText: false,
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
+                ],
               ),
               const SizedBox(height: 20),
 

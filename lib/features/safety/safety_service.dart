@@ -54,6 +54,15 @@ class SafetyService {
 
   Future<void> startSiren() async {
     try {
+      // Enforce max volume on Android via native channel
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        try {
+          await _channel.invokeMethod('setMaxVolume');
+        } catch (e) {
+          debugPrint("Failed to set max volume: $e");
+        }
+      }
+
       // Use BytesSource to play from rootBundle regardless of asset prefix
       final bytes = await rootBundle.load('lib/assets/sounds/siren.mp3');
       await _audioPlayer.setSource(BytesSource(bytes.buffer.asUint8List()));
@@ -69,6 +78,15 @@ class SafetyService {
   Future<void> stopSiren() async {
     await _audioPlayer.stop();
     await _stopStrobe();
+
+    // Restore volume on Android
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        await _channel.invokeMethod('restoreVolume');
+      } catch (e) {
+        debugPrint("Failed to restore volume: $e");
+      }
+    }
   }
 
   Future<void> sendEmergencySMS() async {

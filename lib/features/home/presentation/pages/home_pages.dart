@@ -532,6 +532,20 @@ class _HomePageState extends State<HomePage>
       // CANCEL SOS
       _stopSOSSequence();
     } else {
+      // Check for emergency contact before starting
+      final prefs = await SharedPreferences.getInstance();
+      final contact = prefs.getString('emergency_contact');
+      if (contact == null || contact.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("err_set_contact_first".tr()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
       // START SOS SEQUENCE
       _startSOSSequence();
     }
