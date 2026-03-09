@@ -155,8 +155,8 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
           } else {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Invalid contact number format'),
+                SnackBar(
+                  content: Text('err_invalid_contact'.tr()),
                   backgroundColor: Colors.red,
                 ),
               );
@@ -166,8 +166,8 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Contacts permission required'),
+            SnackBar(
+              content: Text('err_contacts_perm'.tr()),
               backgroundColor: Colors.red,
             ),
           );
@@ -204,8 +204,8 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
         phoneText.length != 10 ||
         !RegExp(r'^[0-9]+$').hasMatch(phoneText)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid 10-digit emergency number.'),
+        SnackBar(
+          content: Text('err_valid_phone'.tr()),
           backgroundColor: Colors.red,
         ),
       );
@@ -627,7 +627,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Emergency Contact',
+                                          'emergency_contact'.tr(),
                                           style: TextStyle(
                                             color: Colors.grey[600],
                                             fontSize: 12,
@@ -899,8 +899,8 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Download the language to use it offline"),
+          SnackBar(
+            content: Text("msg_download_offline".tr()),
           ),
         );
       }
@@ -926,7 +926,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              "${_getLanguageName(locale)} is now available offline",
+              "msg_lang_offline".tr(args: [_getLanguageName(locale)]),
             ),
           ),
         );
@@ -934,7 +934,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Download failed. Check internet.")),
+          SnackBar(content: Text("err_download_failed_generic".tr())),
         );
       }
     } finally {
@@ -950,9 +950,9 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete Language"),
+        title: Text("delete_language".tr()),
         content: Text(
-          "Are you sure you want to delete ${_getLanguageName(locale)}?",
+          "delete_language_prompt".tr(args: [_getLanguageName(locale)]),
         ),
         actions: [
           TextButton(
@@ -961,7 +961,7 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+            child: Text("delete".tr(), style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

@@ -102,7 +102,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('please_enter_name'.tr().isEmpty ? 'Please enter your name' : 'please_enter_name'.tr()),
+            content: Text('please_enter_name'.tr()),
             backgroundColor: Colors.red,
           ),
         );
@@ -242,7 +242,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
                     ],
                     decoration: InputDecoration(
-                      labelText: 'Surname', // "Surname" key might not exist? using literal for now or 'surname'.tr()
+                      labelText: 'label_surname'.tr(),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -263,7 +263,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       child: Text(
                         _dob != null
                             ? DateFormat('dd MMM yyyy').format(_dob!)
-                            : 'Select Date',
+                            : 'label_select_date'.tr(),
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),

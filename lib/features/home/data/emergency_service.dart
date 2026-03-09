@@ -36,7 +36,7 @@ class EmergencyService {
       );
 
       String message =
-          "Your daughter needs help! Location: https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}";
+          "She might need help!!!! Location: https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}";
 
       // 1. Send SMS
       await telephony.sendSms(to: contactNumber, message: message).catchError((

@@ -104,7 +104,7 @@ class _VideoListPageState extends State<VideoListPage> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${video.title} download complete'),
+            content: Text('msg_download_complete'.tr(args: [video.title])),
             backgroundColor: const Color(0xFF00695C),
           ),
         );
@@ -116,7 +116,7 @@ class _VideoListPageState extends State<VideoListPage> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Download failed: $e'),
+            content: Text('err_download_failed'.tr(args: [e.toString()])),
             backgroundColor: Colors.red,
           ),
         );
@@ -128,16 +128,16 @@ class _VideoListPageState extends State<VideoListPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Video'),
-        content: Text('Are you sure you want to delete "${video.title}"?'),
+        title: Text('delete_video_title'.tr()),
+        content: Text('delete_video_prompt'.tr(args: [video.title])),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            child: Text('cancel'.tr(), style: const TextStyle(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text('delete'.tr(), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -151,13 +151,13 @@ class _VideoListPageState extends State<VideoListPage> {
             _downloadedVideoIds.remove(video.id);
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Video deleted')),
+            SnackBar(content: Text('msg_video_deleted'.tr())),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+            SnackBar(content: Text('err_download_failed'.tr(args: [e.toString()])), backgroundColor: Colors.red),
           );
         }
       }
@@ -170,7 +170,11 @@ class _VideoListPageState extends State<VideoListPage> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text(
-          widget.category == 'NGO Seminars' ? 'ngo_seminars_title'.tr() : widget.category,
+          widget.category == 'NGO Seminars' ? 'ngo_seminars_title'.tr() : 
+          widget.category == 'Health Awareness' ? 'health_awareness'.tr() :
+          widget.category == 'Self Defence' ? 'self_defence'.tr() :
+          widget.category == 'Cancer Awareness' ? 'cancer_awareness'.tr() :
+          widget.category,
           style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -215,7 +219,7 @@ class _VideoListPageState extends State<VideoListPage> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        "Error loading videos",
+                        "err_load_videos".tr(),
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 20),
@@ -231,9 +235,9 @@ class _VideoListPageState extends State<VideoListPage> {
                             });
                           });
                         },
-                        child: const Text(
-                          "Retry",
-                          style: TextStyle(color: Color(0xFF00695C)),
+                        child: Text(
+                          "btn_retry".tr(),
+                          style: const TextStyle(color: Color(0xFF00695C)),
                         ),
                       ),
                     ],
@@ -245,7 +249,7 @@ class _VideoListPageState extends State<VideoListPage> {
               if (videos.isEmpty) {
                 return Center(
                   child: Text(
-                    "No videos available",
+                    "no_videos".tr(),
                     style: TextStyle(color: Colors.grey[500], fontSize: 16),
                   ),
                 );
@@ -419,7 +423,7 @@ class _VideoListPageState extends State<VideoListPage> {
   }
 
   String _formatDate(String dateStr) {
-    if (dateStr.isEmpty) return "Recently added";
+    if (dateStr.isEmpty) return "recently_added".tr();
     try {
       final date = DateTime.parse(dateStr);
       // Simple custom format: "Jan 15, 2026"
@@ -439,7 +443,7 @@ class _VideoListPageState extends State<VideoListPage> {
       ];
       return "${months[date.month - 1]} ${date.day}, ${date.year}";
     } catch (_) {
-      return "Recently added";
+      return "recently_added".tr();
     }
   }
 }

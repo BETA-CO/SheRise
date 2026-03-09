@@ -193,7 +193,7 @@ class _HomePageState extends State<HomePage>
                                       if (isBirthday) {
                                         final userName = user.name ?? "User";
                                         message =
-                                            "Happy Birthday $userName, may your day goes safe with us";
+                                            "birthday_greet".tr(args: [userName]);
                                       }
                                     }
                                   }
@@ -252,7 +252,7 @@ class _HomePageState extends State<HomePage>
                                         children: [
                                           if (_isSOSActive) ...[
                                             Text(
-                                              _sosTimer != null ? "$_countdownSeconds" : "ACTIVE",
+                                              _sosTimer != null ? "$_countdownSeconds" : "sos_active".tr(),
                                               style: TextStyle(
                                                 color: Colors.red,
                                                 fontWeight: FontWeight.w900,
@@ -261,9 +261,9 @@ class _HomePageState extends State<HomePage>
                                             ),
                                             if (_sosTimer != null) ...[
                                             ],
-                                            const Text(
-                                              "STOP",
-                                              style: TextStyle(
+                                            Text(
+                                              "sos_stop".tr(),
+                                              style: const TextStyle(
                                                 color: Colors.black,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
@@ -278,7 +278,7 @@ class _HomePageState extends State<HomePage>
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              "EMERGENCY",
+                                              "sos_label".tr(),
                                               style: TextStyle(
                                                 color: Colors.white.withOpacity(
                                                   0.9,
@@ -390,7 +390,7 @@ class _HomePageState extends State<HomePage>
                                     );
                                     if (contact != null && contact.isNotEmpty) {
                                       SafetyService()
-                                          .startLocationSharingSession([
+                                          .shareCurrentLocation([
                                             contact,
                                           ]);
                                       if (!context.mounted) return;
@@ -398,9 +398,9 @@ class _HomePageState extends State<HomePage>
                                       ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(
-                                        const SnackBar(
+                                        SnackBar(
                                           content: Text(
-                                            'Live location sharing started (1 hour)',
+                                            'msg_location_shared'.tr(),
                                           ),
                                         ),
                                       );
@@ -497,9 +497,9 @@ class _HomePageState extends State<HomePage>
               Navigator.pop(context);
               FlutterPhoneDirectCaller.callNumber(number);
             },
-            child: const Text(
-              "Call",
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            child: Text(
+              "btn_call".tr(),
+              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
             ),
           ),
         ],
