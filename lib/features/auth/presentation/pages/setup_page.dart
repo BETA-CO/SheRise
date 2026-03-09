@@ -8,6 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sherise/features/home/presentation/pages/MainPage.dart';
+import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SetupPage extends StatefulWidget {
   const SetupPage({super.key});
@@ -123,7 +125,58 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
     });
   }
 
+  Future<void> _pickContact() async {
+    try {
+      final permissionStatus = await Permission.contacts.request();
+      if (permissionStatus.isGranted) {
+        final FlutterNativeContactPicker contactPicker =
+            FlutterNativeContactPicker();
+        final contact = await contactPicker.selectContact();
 
+        if (contact != null &&
+            contact.phoneNumbers != null &&
+            contact.phoneNumbers!.isNotEmpty) {
+          String cleanNumber = contact.phoneNumbers!.first.replaceAll(
+            RegExp(r'[^\d+]'),
+            '',
+          );
+
+          if (cleanNumber.startsWith('+91') && cleanNumber.length == 13) {
+            cleanNumber = cleanNumber.substring(3);
+          }
+
+          if (cleanNumber.length >= 10) {
+            setState(() {
+              _phoneController.text = cleanNumber.substring(
+                cleanNumber.length - 10,
+              );
+            });
+            await _saveEmergencyContact(_phoneController.text);
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Invalid contact number format'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Contacts permission required'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Error picking contact: $e");
+    }
+  }
 
   void _toggleDropdown() {
     setState(() {
@@ -146,9 +199,10 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
   }
 
   Future<void> _finishSetup() async {
-
     final phoneText = _phoneController.text.trim();
-    if (phoneText.isEmpty || phoneText.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(phoneText)) {
+    if (phoneText.isEmpty ||
+        phoneText.length != 10 ||
+        !RegExp(r'^[0-9]+$').hasMatch(phoneText)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter a valid 10-digit emergency number.'),
@@ -442,43 +496,171 @@ class _SetupPageState extends State<SetupPage> with TickerProviderStateMixin {
                           const SizedBox(height: 24),
                           _buildSectionTitle('emergency_contact'.tr()),
                           const SizedBox(height: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(14),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: TextField(
-                              controller: _phoneController,
-                              keyboardType: TextInputType.phone,
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-                                hintText: 'enter_phone_number'.tr(),
-                                prefixIcon: const Icon(
-                                  Icons.phone,
-                                  color: Colors.black,
-                                ),
-                                suffixIcon: const Icon(
-                                    Icons.contact_phone,
+                          if (_phoneController.text.isEmpty) ...[
+                            // Manual Entry Section
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: TextField(
+                                controller: _phoneController,
+                                keyboardType: TextInputType.phone,
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'enter_phone_number'.tr(),
+                                  prefixIcon: const Icon(
+                                    Icons.phone,
                                     color: Colors.black,
                                   ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 15,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 15,
+                                  ),
+                                ),
+                                onChanged: (val) {
+                                  _saveEmergencyContact(val);
+                                  if (val.length == 10) {
+                                    setState(() {});
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Center(
+                              child: Text(
+                                'OR',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
                                 ),
                               ),
-                              onChanged: _saveEmergencyContact,
                             ),
-                          ),
+                            const SizedBox(height: 16),
+                            // Contact Picker Section
+                            InkWell(
+                              onTap: _pickContact,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.contacts_rounded,
+                                      color: Colors.black,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'select_from_contacts'.tr().isEmpty
+                                          ? "Select from Contacts"
+                                          : 'select_from_contacts'.tr(),
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ] else ...[
+                            // Display Selected Contact
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: const Color(0xFF00695C).withOpacity(0.1),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF00695C).withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.phone,
+                                      color: Color(0xFF00695C),
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Emergency Contact',
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        Text(
+                                          _phoneController.text,
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        _phoneController.clear();
+                                      });
+                                      _saveEmergencyContact("");
+                                    },
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
 
                           const SizedBox(height: 24),
                           _buildSectionTitle('sos_settings'.tr()),
