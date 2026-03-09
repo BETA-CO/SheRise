@@ -146,6 +146,27 @@ class SafetyService {
     }
   }
 
+  // --- Location Sharing (One-time SMS) ---
+  Future<void> shareCurrentLocation(List<String> recipients) async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+
+      String googleMapsLink =
+          "https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}";
+      String message = "My current location (SheRise Share): $googleMapsLink";
+
+      for (String recipient in recipients) {
+        await _telephony.sendSms(to: recipient, message: message);
+      }
+    } catch (e) {
+      debugPrint("Error sharing location: $e");
+    }
+  }
+
   // Live Location Sharing (Passive)
   Timer? _locationTimer;
   bool _isSharingLocation = false;

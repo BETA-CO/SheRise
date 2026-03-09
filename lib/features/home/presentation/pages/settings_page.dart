@@ -380,8 +380,8 @@ class _SettingsPageState extends State<SettingsPage>
                                       _phoneController.clear();
                                     } else {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Please enter a valid 10-digit number'),
+                                        SnackBar(
+                                          content: Text('err_valid_phone'.tr()),
                                           backgroundColor: Colors.red,
                                         ),
                                       );
@@ -423,8 +423,8 @@ class _SettingsPageState extends State<SettingsPage>
                                       } else {
                                           if (context.mounted) {
                                               ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text('Invalid contact number format'),
+                                                SnackBar(
+                                                  content: Text('err_invalid_contact'.tr()),
                                                   backgroundColor: Colors.red,
                                                 ),
                                               );
@@ -434,8 +434,8 @@ class _SettingsPageState extends State<SettingsPage>
                                   } else {
                                       if (context.mounted) {
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(
-                                              content: Text('Contacts permission required'),
+                                            SnackBar(
+                                              content: Text('err_contacts_perm'.tr()),
                                               backgroundColor: Colors.red,
                                             ),
                                           );
@@ -528,7 +528,7 @@ class _SettingsPageState extends State<SettingsPage>
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              'Emergency Contact ${index + 1}',
+                                              'emergency_contact_index'.tr(args: [(index + 1).toString()]),
                                               style: TextStyle(
                                                 color: Colors.grey[600],
                                                 fontSize: 12,
@@ -782,9 +782,9 @@ class _SettingsPageState extends State<SettingsPage>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             // Fixed const
-            content: Text("Download the language to use it offline"),
+            content: Text("msg_download_offline".tr()),
           ),
         );
       }

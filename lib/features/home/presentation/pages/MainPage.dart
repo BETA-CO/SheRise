@@ -5,9 +5,7 @@ import 'package:sherise/features/home/presentation/pages/videos_page.dart';
 import 'package:sherise/features/home/presentation/pages/profile_page.dart';
 import 'package:sherise/features/chatbot/presentation/pages/chatbot_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sherise/features/safety/emergency_lock_screen.dart';
-import 'package:sherise/features/safety/safety_service.dart';
-import 'package:flutter/services.dart';
+import 'package:sherise/features/safety/emergency_lock_screen.dart';  
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});

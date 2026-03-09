@@ -11,7 +11,6 @@ import 'package:sherise/features/auth/domain/entities/app_user.dart';
 import 'package:sherise/features/home/presentation/pages/settings_page.dart';
 import 'package:sherise/features/home/presentation/pages/edit_profile_page.dart';
 import 'package:sherise/features/onboarding/presentation/pages/landing_page.dart';
-import 'package:sherise/features/onboarding/presentation/pages/landing_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
