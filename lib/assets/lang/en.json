@@ -146,7 +146,9 @@
   "health_content": "Health Awareness Page",
   "cancer_title": "Cancer Awareness",
   "cancer_content": "Cancer Awareness Page",
+  "please_enter_name": "Please enter your name",
   "restart_required": "Restart Required",
+  "select_from_contacts": "Select from Contacts",
   "restart_content": "The app needs to restart to apply the language change.",
   "restart_now": "Restart Now",
   "restart_warning": "Note: Please restart the app for language changes to take full effect."

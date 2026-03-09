@@ -96,6 +96,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _saveProfile() async {
+    final String name = _nameController.text.trim();
+    
+    if (name.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('please_enter_name'.tr().isEmpty ? 'Please enter your name' : 'please_enter_name'.tr()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     String? profilePicPath = _profileImage?.path;
@@ -110,7 +124,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     if (mounted) {
       await context.read<AuthCubit>().saveUserDetails(
-            name: _nameController.text.trim(),
+            name: name,
             surname: _surnameController.text.trim(),
             dob: _dob ?? DateTime.now(),
             profilePicPath: profilePicPath ?? "",
