@@ -4,14 +4,22 @@
     android:layout_height="match_parent"
     android:padding="@dimen/widget_margin">
 
-    <Button
+    <LinearLayout
         android:id="@+id/widget_button"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:backgroundTint="#FF0000"
-        android:text="SOS"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp"
-        android:textStyle="bold" />
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/circular_button_idle"
+        android:gravity="center"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/widget_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SOS"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
 </RelativeLayout>

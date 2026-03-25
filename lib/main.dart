@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,6 +7,7 @@ import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:sherise/colors/colors.dart';
 import 'package:sherise/features/auth/data/local_auth_repo.dart';
 import 'package:sherise/features/home/data/emergency_service.dart';
+import 'package:sherise/features/safety/safety_service.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sherise/core/utils/smooth_scroll_behavior.dart';
@@ -14,12 +16,53 @@ import 'package:sherise/features/onboarding/presentation/pages/splash_screen.dar
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+Timer? _widgetSosTimer;
+
 // Background Callback for Home Widget
 @pragma('vm:entry-point')
 Future<void> backgroundCallback(Uri? data) async {
   if (data?.host == 'emergency') {
-    final service = EmergencyService();
-    await service.triggerEmergency();
+    WidgetsFlutterBinding.ensureInitialized();
+    final prefs = await SharedPreferences.getInstance();
+    final isPlaying = prefs.getBool('widget_siren_playing') ?? false;
+    final safetyService = SafetyService();
+    
+    if (isPlaying) {
+      // User tapped during the waiting sequence
+      _widgetSosTimer?.cancel();
+      _widgetSosTimer = null;
+      
+      await safetyService.stopSiren();
+      await prefs.setBool('widget_siren_playing', false);
+      await HomeWidget.saveWidgetData<String>('widget_text', 'SOS');
+      await HomeWidget.saveWidgetData<String>('widget_bg', 'idle');
+      await HomeWidget.updateWidget(androidName: 'EmergencyWidget');
+    } else {
+      await safetyService.startSiren();
+      await prefs.setBool('widget_siren_playing', true);
+      await HomeWidget.saveWidgetData<String>('widget_text', 'STOP');
+      await HomeWidget.saveWidgetData<String>('widget_bg', 'active');
+      await HomeWidget.updateWidget(androidName: 'EmergencyWidget');
+      
+      final callEnabled = prefs.getBool('emergency_call_enabled') ?? true;
+      if (callEnabled) {
+        _widgetSosTimer?.cancel();
+        _widgetSosTimer = Timer(const Duration(seconds: 10), () async {
+          _widgetSosTimer = null;
+          
+          await safetyService.stopSiren();
+          final latestPrefs = await SharedPreferences.getInstance();
+          await latestPrefs.setBool('widget_siren_playing', false);
+          
+          await HomeWidget.saveWidgetData<String>('widget_text', 'SOS');
+          await HomeWidget.saveWidgetData<String>('widget_bg', 'idle');
+          await HomeWidget.updateWidget(androidName: 'EmergencyWidget');
+          
+          final service = EmergencyService();
+          await service.triggerEmergency();
+        });
+      }
+    }
   }
 }
 
