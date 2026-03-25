@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 import 'package:sherise/features/auth/presentation/components/loading.dart';
 import 'package:sherise/features/auth/presentation/cubits/auth_cubit.dart';
@@ -17,15 +16,12 @@ class AuthFlowWrapper extends StatelessWidget {
     return BlocConsumer<AuthCubit, AuthState>(
       builder: (context, state) {
         if (state is Unauthenticated) {
-          FlutterNativeSplash.remove();
           return const AuthPage();
         }
         if (state is Authenticated) {
           if (state.user.isNewUser) {
-            FlutterNativeSplash.remove();
             return const SetupPage();
           }
-          FlutterNativeSplash.remove();
           return const MainPage();
         } else {
           return const LoadingScreen();

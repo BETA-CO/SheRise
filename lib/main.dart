@@ -7,11 +7,10 @@ import 'package:sherise/colors/colors.dart';
 import 'package:sherise/features/auth/data/local_auth_repo.dart';
 import 'package:sherise/features/home/data/emergency_service.dart';
 import 'package:home_widget/home_widget.dart';
-import 'package:sherise/features/auth/presentation/pages/auth_flow_wrapper.dart';
-import 'package:sherise/features/onboarding/presentation/pages/landing_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sherise/core/utils/smooth_scroll_behavior.dart';
 import 'package:sherise/core/localization/file_asset_loader.dart';
+import 'package:sherise/features/onboarding/presentation/pages/splash_screen.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -147,9 +146,7 @@ class _MyAppState extends State<MyApp> {
             child: child!,
           );
         },
-        home: widget.onboardingComplete
-            ? const AuthFlowWrapper()
-            : const LandingPage(),
+        home: SplashScreen(onboardingComplete: widget.onboardingComplete),
       ),
     );
   }

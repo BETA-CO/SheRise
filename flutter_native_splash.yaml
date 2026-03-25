@@ -3,8 +3,8 @@ flutter_native_splash:
   ios: true
 
   color: "#FFFFFF"
-  image: "lib/assets/splash screen image.png"
+  image: "lib/assets/transparent.png"
 
   android_12:
-    image: "lib/assets/splash screen image.png"
     color: "#FFFFFF"
+    image: "lib/assets/transparent.png"

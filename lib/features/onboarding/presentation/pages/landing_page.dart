@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:sherise/features/onboarding/presentation/components/slide_to_act.dart';
 import 'package:sherise/features/onboarding/presentation/pages/feature_showcase_page.dart';
 
@@ -19,7 +18,6 @@ class _LandingPageState extends State<LandingPage>
   @override
   void initState() {
     super.initState();
-    FlutterNativeSplash.remove();
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
