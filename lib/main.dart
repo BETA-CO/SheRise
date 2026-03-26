@@ -15,6 +15,8 @@ import 'package:sherise/core/localization/file_asset_loader.dart';
 import 'package:sherise/features/onboarding/presentation/pages/splash_screen.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:telephony/telephony.dart';
 
 Timer? _widgetSosTimer;
 
@@ -61,6 +63,28 @@ Future<void> backgroundCallback(Uri? data) async {
           final service = EmergencyService();
           await service.triggerEmergency();
         });
+      }
+    }
+  } else if (data?.host == 'location') {
+    WidgetsFlutterBinding.ensureInitialized();
+    final prefs = await SharedPreferences.getInstance();
+    final contactNumber = prefs.getString('emergency_contact');
+    if (contactNumber != null && contactNumber.isNotEmpty) {
+      try {
+        Position position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 10),
+          ),
+        );
+        String message = "My current location: https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}";
+        await Telephony.instance.sendSms(to: contactNumber, message: message);
+      } catch (e) {
+        Position? position = await Geolocator.getLastKnownPosition();
+        if (position != null) {
+          String message = "My last known location: https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}";
+          await Telephony.instance.sendSms(to: contactNumber, message: message);
+        }
       }
     }
   }

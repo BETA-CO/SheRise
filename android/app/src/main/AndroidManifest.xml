@@ -64,12 +64,33 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        <receiver android:name=".EmergencyWidget" android:exported="true">
+        <receiver android:name=".EmergencyWidget" android:exported="true" android:label="SheRise SOS">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider"
                 android:resource="@xml/widget_info" />
+        </receiver>
+        <receiver android:name=".ContactWidget" android:exported="true" android:label="Emergency Contact">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/contact_widget_info" />
+        </receiver>
+        <receiver android:name=".LocationWidget" android:exported="true" android:label="Share Location">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/location_widget_info" />
+        </receiver>
+        <receiver android:name=".PoliceWidget" android:exported="true" android:label="Call Police (103)">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/police_widget_info" />
         </receiver>
         <receiver android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver" android:exported="true">
             <intent-filter>
