@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_sos_desc">Instantly activate a loud siren and trigger the emergency protocol automatically after a 10s countdown.</string>
+    <string name="widget_contact_desc">Place an immediate phone call natively to your primary saved emergency contact number.</string>
+    <string name="widget_location_desc">Silently fetch your precise GPS coordinates in the background and SMS a Google Maps link to your contact.</string>
+    <string name="widget_police_desc">Directly dial the Nirbhaya Squad (103) police helpline instantly.</string>
+</resources>
